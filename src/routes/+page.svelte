@@ -76,6 +76,29 @@
 			});
 	}
 
+	async function handleConnect() {
+		let res = await fetch('/api/calls', {
+			method: 'GET'
+		});
+		let data = await res.json();
+		console.log(data);
+		if (!data.id) {
+			handleCall();
+			res = await fetch('/api/calls', {
+				method: 'POST',
+				body: JSON.stringify({ id: callInput.value }),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			callInput.value = 'Waiting to connect...';
+		} else {
+			callInput.value = data.id;
+			console.log('Handling answer?');
+			handleAnswer();
+		}
+	}
+
 	async function handleCall() {
 		// Reference Firestore collections for signaling
 		const callDocRef = doc(collection(firestore, 'calls'));
@@ -123,6 +146,7 @@
 	}
 	async function handleAnswer() {
 		const callId = callInput.value;
+		console.log(callId);
 		const callDocRef = doc(firestore, 'calls', callId);
 		const answerCandidatesRef = collection(callDocRef, 'answerCandidates');
 		const offerCandidatesRef = collection(callDocRef, 'offerCandidates');
@@ -196,11 +220,7 @@
 		<div class="flex space-x-4">
 			<button
 				class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
-				on:click={handleCall}>Call</button
-			>
-			<button
-				class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
-				on:click={handleAnswer}>Answer</button
+				on:click={handleConnect}>Connect</button
 			>
 			<button
 				class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300"
