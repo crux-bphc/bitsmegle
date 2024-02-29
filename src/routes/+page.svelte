@@ -167,18 +167,45 @@
 	}
 </script>
 
-<h1>Chat Interface</h1>
+<div class="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
+	<h1 class="text-3xl font-bold mb-6">BITSmegle</h1>
 
-<video bind:this={localVideo} autoplay muted>
-	<!-- Dummy track for accessibility -->
-	<track kind="captions" />
-</video>
-<video bind:this={remoteVideo} autoplay>
-	<!-- Dummy track for accessibility -->
-	<track kind="captions" />
-</video>
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-screen-lg">
+		<div class="relative aspect-w-16 aspect-h-9">
+			<video class="object-cover w-full h-full" bind:this={localVideo} autoplay muted>
+				<!-- Dummy track for accessibility -->
+				<track kind="captions" />
+			</video>
+		</div>
 
-<input bind:this={callInput} />
-<button on:click={handleCall}>Call</button>
-<button on:click={handleAnswer}>Answer</button>
-<button on:click={endWebRTC}>End Chat</button>
+		<div class="relative aspect-w-16 aspect-h-9">
+			<video class="object-cover w-full h-full" bind:this={remoteVideo} autoplay>
+				<!-- Dummy track for accessibility -->
+				<track kind="captions" />
+			</video>
+		</div>
+	</div>
+
+	<div class="mt-6 flex flex-col items-center space-y-4">
+		<input
+			class="w-full px-4 py-2 bg-gray-800 text-white rounded-lg"
+			bind:this={callInput}
+			placeholder="Enter Call ID"
+		/>
+
+		<div class="flex space-x-4">
+			<button
+				class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
+				on:click={handleCall}>Call</button
+			>
+			<button
+				class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
+				on:click={handleAnswer}>Answer</button
+			>
+			<button
+				class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300"
+				on:click={endWebRTC}>End Chat</button
+			>
+		</div>
+	</div>
+</div>
