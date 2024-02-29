@@ -27,6 +27,7 @@
 
 	const firestore = getFirestore(app);
 
+	let currentStatus: string = 'Idle, please press connect';
 	let localStream: MediaStream;
 	let remoteStream: MediaStream;
 	let localVideo: HTMLVideoElement;
@@ -35,48 +36,59 @@
 
 	let peerConnection: RTCPeerConnection;
 
-	onMount(() => {
-		initiateWebRTC();
+	onMount(async () => {
+		const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+		localStream = stream;
+		await initiateWebRTC();
 	});
 
-	function initiateWebRTC() {
+	async function initiateWebRTC() {
 		// Get user media
-		navigator.mediaDevices
-			.getUserMedia({ video: true, audio: true })
-			.then((stream) => {
-				localStream = stream;
-				remoteStream = new MediaStream();
+		remoteStream = new MediaStream();
 
-				// Set up WebRTC peer connection
-				const servers = {
-					iceServers: [
-						{
-							urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302']
-						}
-					],
-					iceCandidatePoolSize: 10
-				};
-				peerConnection = new RTCPeerConnection(servers);
+		// Set up WebRTC peer connection
+		const servers = {
+			iceServers: [
+				{
+					urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302']
+				}
+			],
+			iceCandidatePoolSize: 10
+		};
+		peerConnection = new RTCPeerConnection(servers);
 
-				// Add local tracks to the peer connection
-				localStream.getTracks().forEach((track) => {
-					peerConnection.addTrack(track, localStream);
-				});
+		// Add local tracks to the peer connection
+		localStream.getTracks().forEach((track) => {
+			peerConnection.addTrack(track, localStream);
+		});
 
-				peerConnection.ontrack = (event) => {
-					event.streams[0].getTracks().forEach((track) => {
-						remoteStream.addTrack(track);
-					});
-				};
-				localVideo.srcObject = localStream;
-				remoteVideo.srcObject = remoteStream;
-			})
-			.catch((err) => {
-				console.error('Error accessing media devices:', err);
+		peerConnection.ontrack = (event) => {
+			currentStatus = 'Connected to someone';
+			event.streams[0].getTracks().forEach((track) => {
+				remoteStream.addTrack(track);
 			});
+
+			event.streams[0].onremovetrack = ({ track }) => {
+				console.log('Track removed');
+			};
+		};
+
+		peerConnection.oniceconnectionstatechange = (event) => {
+			if (peerConnection.iceConnectionState === 'disconnected') {
+				// Peer connection disconnected, you may consider this as no more remote data
+				console.log('Peer connection disconnected');
+			}
+		};
+		localVideo.srcObject = localStream;
+		remoteVideo.srcObject = remoteStream;
 	}
 
 	async function handleConnect() {
+		if (currentStatus === 'Connected to someone') {
+			await endWebRTC();
+			await initiateWebRTC();
+		}
+
 		let res = await fetch('/api/calls', {
 			method: 'GET'
 		});
@@ -91,7 +103,7 @@
 					'Content-Type': 'application/json'
 				}
 			});
-			callInput.value = 'Waiting to connect...';
+			currentStatus = 'Waiting to connect with someone...';
 		} else {
 			callInput.value = data.id;
 			console.log('Handling answer?');
@@ -182,12 +194,12 @@
 			});
 		});
 	}
-	function endWebRTC() {
+	async function endWebRTC() {
 		// Close WebRTC connection and WebSocket connection
-		peerConnection.close();
+		await peerConnection.close();
 
 		// Stop local media stream
-		localStream.getTracks().forEach((track) => track.stop());
+		// localStream.getTracks().forEach((track) => track.stop());
 	}
 </script>
 
@@ -211,17 +223,23 @@
 	</div>
 
 	<div class="mt-6 flex flex-col items-center space-y-4">
+		<div>
+			Status:
+			<span>{currentStatus}</span>
+		</div>
 		<input
 			class="w-full px-4 py-2 bg-gray-800 text-white rounded-lg"
 			bind:this={callInput}
-			placeholder="Enter Call ID"
+			placeholder="Call ID"
+			disabled
 		/>
 
 		<div class="flex space-x-4">
 			<button
 				class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
-				on:click={handleConnect}>Connect</button
+				on:click={handleConnect}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
 			>
+
 			<button
 				class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300"
 				on:click={endWebRTC}>End Chat</button
