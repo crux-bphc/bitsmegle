@@ -22,6 +22,9 @@
 		appId: '1:967984062313:web:4eba9e15c8304423b5a7f8'
 	};
 
+	import { user } from '$lib/stores/userStore';
+	import { goto } from '$app/navigation';
+
 	// Initialize Firebase
 	const app = initializeApp(firebaseConfig);
 
@@ -37,10 +40,30 @@
 	let peerConnection: RTCPeerConnection;
 
 	onMount(async () => {
+		// Assuming you have a function to parse cookies
+		const userData = parseCookie(document.cookie).user;
+		if (userData) {
+			let d = JSON.parse(JSON.parse(userData));
+			user.set(d);
+		} else {
+			return goto('/signup');
+		}
+
 		const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 		localStream = stream;
 		await initiateWebRTC();
 	});
+
+	function parseCookie(cookieString: string): Record<string, string> {
+		const cookies: Record<string, string> = {};
+		cookieString.split(';').forEach((cookie) => {
+			const [cookieName, cookieValue] = cookie
+				.split('=')
+				.map((part) => decodeURIComponent(part.trim()));
+			cookies[cookieName] = cookieValue || '';
+		});
+		return cookies;
+	}
 
 	async function initiateWebRTC() {
 		// Get user media
@@ -77,6 +100,8 @@
 			if (peerConnection.iceConnectionState === 'disconnected') {
 				// Peer connection disconnected, you may consider this as no more remote data
 				console.log('Peer connection disconnected');
+				currentStatus = 'Idle, disconnected, please press connect';
+				// remoteStream.getTracks().forEach((track) => track.stop());
 			}
 		};
 		localVideo.srcObject = localStream;
@@ -205,6 +230,9 @@
 
 <div class="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
 	<h1 class="text-3xl font-bold mb-6">BITSmegle</h1>
+	{#if $user}
+		<p>Hello, {$user.name}!</p>
+	{/if}
 
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-screen-lg">
 		<div class="relative aspect-w-16 aspect-h-9">
@@ -247,3 +275,11 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	video {
+		transform: rotateY(180deg);
+		-webkit-transform: rotateY(180deg); /* Safari and Chrome */
+		-moz-transform: rotateY(180deg); /* Firefox */
+	}
+</style>
