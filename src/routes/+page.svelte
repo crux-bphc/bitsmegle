@@ -55,9 +55,14 @@
 			return goto('/signup');
 		}
 
-		fetch('api/users')
-			.then((res) => res.json())
-			.then((data) => (currentOnlineCount = data.count));
+		setInterval(
+			() =>
+				fetch('api/users')
+					.then((res) => res.json())
+					.then((data) => (currentOnlineCount = data.count)),
+			5 * 1000
+		);
+
 		const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 		localStream = stream;
 		await initiateWebRTC();
@@ -207,6 +212,9 @@
 		const callDocSnapshot = await getDoc(callDocRef);
 		const callData = callDocSnapshot.data();
 
+		if (typeof callData == 'undefined') {
+			// Person didn't give permissions for camera but somehow connected?
+		}
 		const offerDescription = callData.offer;
 		await peerConnection.setRemoteDescription(new RTCSessionDescription(offerDescription));
 
@@ -240,11 +248,18 @@
 
 <div class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
 	<h1 class="text-5xl font-bold mb-2">BITSmegle</h1>
-	{#if currentOnlineCount}
-		<span>Currently online: {currentOnlineCount}</span>
-	{/if}
+
 	{#if $user}
-		<div class="mb-4">Hello, <span class="text-blue-300">{$user.name} </span>👋</div>
+		<div class="mb-1">
+			Hello, <span class="text-blue-300">{$user.name} </span>👋
+		</div>
+		{#if currentOnlineCount > 1}
+			<span class="text-gray-300 mb-3 text-sm"
+				>There are currently {currentOnlineCount} people online!</span
+			>
+		{:else if currentOnlineCount == 1}
+			<span class="text-gray-300 mb-3 text-sm">Only you are online right now, please wait :(</span>
+		{/if}
 	{/if}
 
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-screen-lg">
