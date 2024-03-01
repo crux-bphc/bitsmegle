@@ -36,6 +36,7 @@
 	let localVideo: HTMLVideoElement;
 	let remoteVideo: HTMLVideoElement;
 	let callInput: HTMLInputElement;
+	let talkingToUser: string;
 
 	let peerConnection: RTCPeerConnection;
 
@@ -44,6 +45,10 @@
 		const userData = parseCookie(document.cookie).user;
 		if (userData) {
 			let d = JSON.parse(JSON.parse(userData));
+			d.name = d.name
+				.split(' ')
+				.map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
+				.join(' ');
 			user.set(d);
 		} else {
 			return goto('/signup');
@@ -86,7 +91,7 @@
 		});
 
 		peerConnection.ontrack = (event) => {
-			currentStatus = 'Connected to someone';
+			currentStatus = 'Connected to ' + talkingToUser;
 			event.streams[0].getTracks().forEach((track) => {
 				remoteStream.addTrack(track);
 			});
@@ -109,7 +114,7 @@
 	}
 
 	async function handleConnect() {
-		if (currentStatus === 'Connected to someone') {
+		if (currentStatus[0] === 'C') {
 			await endWebRTC();
 			await initiateWebRTC();
 		}
@@ -123,7 +128,7 @@
 			handleCall();
 			res = await fetch('/api/calls', {
 				method: 'POST',
-				body: JSON.stringify({ id: callInput.value }),
+				body: JSON.stringify({ id: callInput.value, user: $user.name }),
 				headers: {
 					'Content-Type': 'application/json'
 				}
@@ -131,6 +136,7 @@
 			currentStatus = 'Waiting to connect with someone...';
 		} else {
 			callInput.value = data.id;
+			talkingToUser = data.user;
 			console.log('Handling answer?');
 			handleAnswer();
 		}
@@ -229,9 +235,9 @@
 </script>
 
 <div class="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
-	<h1 class="text-3xl font-bold mb-6">BITSmegle</h1>
+	<h1 class="text-5xl font-bold mb-2">BITSmegle</h1>
 	{#if $user}
-		<p>Hello, {$user.name}!</p>
+		<div class="mb-4">Hello, <span class="text-blue-300">{$user.name} </span>👋</div>
 	{/if}
 
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-screen-lg">
