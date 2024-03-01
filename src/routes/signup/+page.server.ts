@@ -1,10 +1,10 @@
 import { redirect } from '@sveltejs/kit';
 import { OAuth2Client } from 'google-auth-library';
-import { SECRET_CLIENT_ID, SECRET_CLIENT_SECRET } from '$env/static/private';
+import { SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, REDIRECT_URI } from '$env/static/private';
 
 export const actions = {
 	OAuth2: async ({}) => {
-		const redirectURL = 'https://c36c-182-75-45-1.ngrok-free.app/api/oauth';
+		const redirectURL = REDIRECT_URI + '/api/oauth';
 
 		const oAuth2Client = new OAuth2Client(SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, redirectURL);
 

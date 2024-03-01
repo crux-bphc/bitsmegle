@@ -39,6 +39,7 @@
 	let talkingToUser: string;
 
 	let peerConnection: RTCPeerConnection;
+	let currentOnlineCount: number = 0;
 
 	onMount(async () => {
 		// Assuming you have a function to parse cookies
@@ -54,6 +55,9 @@
 			return goto('/signup');
 		}
 
+		fetch('api/users')
+			.then((res) => res.json())
+			.then((data) => (currentOnlineCount = data.count));
 		const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 		localStream = stream;
 		await initiateWebRTC();
@@ -234,22 +238,34 @@
 	}
 </script>
 
-<div class="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
+<div class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
 	<h1 class="text-5xl font-bold mb-2">BITSmegle</h1>
+	{#if currentOnlineCount}
+		<span>Currently online: {currentOnlineCount}</span>
+	{/if}
 	{#if $user}
 		<div class="mb-4">Hello, <span class="text-blue-300">{$user.name} </span>👋</div>
 	{/if}
 
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-screen-lg">
-		<div class="relative aspect-w-16 aspect-h-9">
-			<video class="object-cover w-full h-full" bind:this={localVideo} autoplay muted>
+		<div class="relative">
+			<video
+				class="object-cover w-full h-full aspect-w-16 aspect-h-9 max-w-full"
+				bind:this={localVideo}
+				autoplay
+				muted
+			>
 				<!-- Dummy track for accessibility -->
 				<track kind="captions" />
 			</video>
 		</div>
 
-		<div class="relative aspect-w-16 aspect-h-9">
-			<video class="object-cover w-full h-full" bind:this={remoteVideo} autoplay>
+		<div class="relative">
+			<video
+				class="object-cover w-full h-full aspect-w-16 aspect-h-9 max-w-full"
+				bind:this={remoteVideo}
+				autoplay
+			>
 				<!-- Dummy track for accessibility -->
 				<track kind="captions" />
 			</video>
