@@ -5,7 +5,7 @@
 			<button class="bg-rose-500 text-white p-3 rounded-md text-md">End Chat</button>
 		</div>
 	</div>
-	<div class="relative h-[90%] w-[48%] mb-10 rounded-xl overflow-hidden bg-black">
+	<div class="relative h-[90%] w-[48%] rounded-xl overflow-hidden bg-black">
 		<div
 			class="w-full h-[85%] bg-slate-800 flex flex-col-reverse p-3 py-5 overflow-y-scroll overflow-x-hidden"
 		>
