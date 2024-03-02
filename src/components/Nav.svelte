@@ -1,4 +1,4 @@
-<nav class="shadow-xl flex flex-row items-center justify-between w-full h-[7%] bg-slate-800 px-5">
+<nav class="flex flex-row items-center justify-between w-full h-[7%] px-5">
 	<div class="h-full flex items-center justify-center">
 		<img class="h-[50%] mr-3" src="favicon.png" alt="Logo" />
 		<h1 class="text-white text-2xl">BITSmegle</h1>
