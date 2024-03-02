@@ -26,6 +26,7 @@
 	import { goto } from '$app/navigation';
 
 	import Video from '../components/Video.svelte';
+	import Chat from '../components/Chat.svelte';
 
 	// Initialize Firebase
 	const app = initializeApp(firebaseConfig);
@@ -259,6 +260,8 @@
 	<Video userName="Swas" userId="2023A7PS0043H" store={localStream} mute={true} />
 	<Video userName={talkingToUser} userId="2023A7PS0000H" store={remoteStream} mute={false} />
 </section>
+
+<Chat />
 
 <div class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
 	<h1 class="text-5xl font-bold mb-2">BITSmegle</h1>
