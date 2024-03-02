@@ -25,14 +25,17 @@
 	import { user } from '$lib/stores/userStore';
 	import { goto } from '$app/navigation';
 
+	import Video from '../components/Video.svelte';
+
 	// Initialize Firebase
 	const app = initializeApp(firebaseConfig);
 
 	const firestore = getFirestore(app);
 
+	import { localStream, remoteStream } from '$lib/stores/streamStore';
+
 	let currentStatus: string = 'Idle, please press connect';
-	let localStream: MediaStream;
-	let remoteStream: MediaStream;
+
 	let localVideo: HTMLVideoElement;
 	let remoteVideo: HTMLVideoElement;
 	let callInput: HTMLInputElement;
@@ -64,7 +67,7 @@
 		);
 
 		const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-		localStream = stream;
+		localStream.set(stream);
 		await initiateWebRTC();
 	});
 
@@ -81,7 +84,7 @@
 
 	const initiateWebRTC = async () => {
 		// Get user media
-		remoteStream = new MediaStream();
+		remoteStream.set(new MediaStream());
 
 		// Set up WebRTC peer connection
 		const servers = {
@@ -95,14 +98,15 @@
 		peerConnection = new RTCPeerConnection(servers);
 
 		// Add local tracks to the peer connection
-		localStream.getTracks().forEach((track) => {
-			peerConnection.addTrack(track, localStream);
+
+		$localStream?.getTracks().forEach((track) => {
+			peerConnection.addTrack(track, $localStream ? $localStream : new MediaStream());
 		});
 
 		peerConnection.ontrack = (event) => {
 			currentStatus = 'Connected to ' + talkingToUser;
 			event.streams[0].getTracks().forEach((track) => {
-				remoteStream.addTrack(track);
+				$remoteStream?.addTrack(track);
 			});
 
 			event.streams[0].onremovetrack = ({ track }) => {
@@ -119,8 +123,8 @@
 				// remoteStream.getTracks().forEach((track) => track.stop());
 			}
 		};
-		localVideo.srcObject = localStream;
-		remoteVideo.srcObject = remoteStream;
+		localVideo.srcObject = $localStream;
+		remoteVideo.srcObject = $remoteStream;
 	};
 
 	const handleConnect = async () => {
@@ -249,6 +253,13 @@
 	};
 </script>
 
+<section
+	class="h-[85%] lg:h-[65%] bg-slate-700 flex flex-col lg:flex-row items-center justify-evenly"
+>
+	<Video userName={$user.name} userId="2023A7PS0043H" store={localStream} mute={true} />
+	<Video userName={talkingToUser} userId="2023A7PS0000H" store={remoteStream} mute={false} />
+</section>
+
 <div class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
 	<h1 class="text-5xl font-bold mb-2">BITSmegle</h1>
 
@@ -264,31 +275,6 @@
 			<span class="text-gray-300 mb-3 text-sm">Only you are online right now, please wait :(</span>
 		{/if}
 	{/if}
-
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-screen-lg">
-		<div class="relative">
-			<video
-				class="object-cover w-full h-full aspect-w-16 aspect-h-9 max-w-full"
-				bind:this={localVideo}
-				autoplay
-				muted
-			>
-				<!-- Dummy track for accessibility -->
-				<track kind="captions" />
-			</video>
-		</div>
-
-		<div class="relative">
-			<video
-				class="object-cover w-full h-full aspect-w-16 aspect-h-9 max-w-full"
-				bind:this={remoteVideo}
-				autoplay
-			>
-				<!-- Dummy track for accessibility -->
-				<track kind="captions" />
-			</video>
-		</div>
-	</div>
 
 	<div class="mt-6 flex flex-col items-center space-y-4">
 		<div>
@@ -315,11 +301,3 @@
 		</div>
 	</div>
 </div>
-
-<style>
-	video {
-		transform: rotateY(180deg);
-		-webkit-transform: rotateY(180deg); /* Safari and Chrome */
-		-moz-transform: rotateY(180deg); /* Firefox */
-	}
-</style>
