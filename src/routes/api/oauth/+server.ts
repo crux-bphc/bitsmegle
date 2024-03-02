@@ -1,9 +1,8 @@
-import { redirect } from '@sveltejs/kit';
 import { OAuth2Client } from 'google-auth-library';
 import cookie from 'cookie';
 import { SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, REDIRECT_URI } from '$env/static/private';
 
-async function getUserData(access_token: any) {
+const getUserData = async (access_token: string) => {
 	const response = await fetch(
 		`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
 	);
@@ -11,7 +10,7 @@ async function getUserData(access_token: any) {
 	const data = await response.json();
 	// console.log('data', data);
 	return data;
-}
+};
 
 export const GET = async ({ url }) => {
 	const redirectURL = REDIRECT_URI + '/api/oauth';
