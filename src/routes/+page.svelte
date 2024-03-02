@@ -48,7 +48,7 @@
 			let d = JSON.parse(JSON.parse(userData));
 			d.name = d.name
 				.split(' ')
-				.map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
+				.map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase()) // convert to titlecase
 				.join(' ');
 			user.set(d);
 		} else {
