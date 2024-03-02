@@ -68,7 +68,7 @@
 		await initiateWebRTC();
 	});
 
-	function parseCookie(cookieString: string): Record<string, string> {
+	const parseCookie = (cookieString: string): Record<string, string> => {
 		const cookies: Record<string, string> = {};
 		cookieString.split(';').forEach((cookie) => {
 			const [cookieName, cookieValue] = cookie
@@ -77,9 +77,9 @@
 			cookies[cookieName] = cookieValue || '';
 		});
 		return cookies;
-	}
+	};
 
-	async function initiateWebRTC() {
+	const initiateWebRTC = async () => {
 		// Get user media
 		remoteStream = new MediaStream();
 
@@ -112,6 +112,7 @@
 
 		peerConnection.oniceconnectionstatechange = (event) => {
 			if (peerConnection.iceConnectionState === 'disconnected') {
+				// TODO: For some reason this fires quite late even after user dissconnects
 				// Peer connection disconnected, you may consider this as no more remote data
 				console.log('Peer connection disconnected');
 				currentStatus = 'Idle, disconnected, please press connect';
@@ -120,9 +121,9 @@
 		};
 		localVideo.srcObject = localStream;
 		remoteVideo.srcObject = remoteStream;
-	}
+	};
 
-	async function handleConnect() {
+	const handleConnect = async () => {
 		if (currentStatus[0] === 'C') {
 			await endWebRTC();
 			await initiateWebRTC();
@@ -149,9 +150,9 @@
 			console.log('Handling answer?');
 			handleAnswer();
 		}
-	}
+	};
 
-	async function handleCall() {
+	const handleCall = async () => {
 		// Reference Firestore collections for signaling
 		const callDocRef = doc(collection(firestore, 'calls'));
 		const offerCandidatesRef = collection(callDocRef, 'offerCandidates');
@@ -195,8 +196,9 @@
 				}
 			});
 		});
-	}
-	async function handleAnswer() {
+	};
+
+	const handleAnswer = async () => {
 		const callId = callInput.value;
 		console.log(callId);
 		const callDocRef = doc(firestore, 'calls', callId);
@@ -236,14 +238,15 @@
 				}
 			});
 		});
-	}
-	async function endWebRTC() {
+	};
+
+	const endWebRTC = async () => {
 		// Close WebRTC connection and WebSocket connection
 		await peerConnection.close();
 
 		// Stop local media stream
 		// localStream.getTracks().forEach((track) => track.stop());
-	}
+	};
 </script>
 
 <div class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
