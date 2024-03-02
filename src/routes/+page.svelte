@@ -256,7 +256,7 @@
 <section
 	class="h-[85%] lg:h-[65%] bg-slate-700 flex flex-col lg:flex-row items-center justify-evenly"
 >
-	<Video userName={$user.name} userId="2023A7PS0043H" store={localStream} mute={true} />
+	<Video userName="Swas" userId="2023A7PS0043H" store={localStream} mute={true} />
 	<Video userName={talkingToUser} userId="2023A7PS0000H" store={remoteStream} mute={false} />
 </section>
 
