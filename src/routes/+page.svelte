@@ -34,6 +34,7 @@
 	const firestore = getFirestore(app);
 
 	import { localStream, remoteStream } from '$lib/stores/streamStore';
+	import MobileChat from '../components/MobileChat.svelte';
 
 	let currentStatus: string = 'Idle, please press connect';
 
@@ -260,6 +261,7 @@
 </section>
 
 <Chat />
+<MobileChat />
 
 
 <div class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
