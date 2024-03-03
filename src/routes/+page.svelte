@@ -44,7 +44,6 @@
 	let talkingToUser: string;
 
 	let peerConnection: RTCPeerConnection;
-	let currentOnlineCount: number = 0;
 
 	onMount(async () => {
 		// Assuming you have a function to parse cookies
@@ -59,14 +58,6 @@
 		} else {
 			return goto('/signup');
 		}
-
-		setInterval(
-			() =>
-				fetch('api/users')
-					.then((res) => res.json())
-					.then((data) => (currentOnlineCount = data.count)),
-			5 * 1000
-		);
 
 		const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 		localStream.set(stream);
@@ -260,48 +251,27 @@
 	<Video userName={talkingToUser} userId="2023A7PS0000H" store={remoteStream} mute={false} />
 </section>
 
-<Chat />
-<MobileChat />
-
-
-<div class="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-	<h1 class="text-5xl font-bold mb-2">BITSmegle</h1>
-
-	{#if $user}
-		<div class="mb-1">
-			Hello, <span class="text-blue-300">{$user.name} </span>👋
-		</div>
-		{#if currentOnlineCount > 1}
-			<span class="text-gray-300 mb-3 text-sm"
-				>There are currently {currentOnlineCount} people online!</span
+<section class="hidden h-[28%] md:flex sm:flex-col md:flex-row items-center justify-evenly">
+	<div class="relative h-[90%] w-[48%] rounded-3xl overflow-hidden flex items-start">
+		<div class="w-full p-5 flex justify-center space-x-5 items-center">
+			<div class="text-white bg-gray-800 rounded-lg px-4 py-2">
+				Status:
+				<span>{currentStatus}</span>
+			</div>
+			<input
+				class="w-full px-4 py-2 bg-gray-800 text-white rounded-lg"
+				bind:this={callInput}
+				placeholder="Call ID"
+				disabled
+			/>
+			<button class="bg-indigo-500 text-white p-3 rounded-md text-md" on:click={handleConnect}
+				>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
 			>
-		{:else if currentOnlineCount == 1}
-			<span class="text-gray-300 mb-3 text-sm">Only you are online right now, please wait :(</span>
-		{/if}
-	{/if}
-
-	<div class="mt-6 flex flex-col items-center space-y-4">
-		<div>
-			Status:
-			<span>{currentStatus}</span>
-		</div>
-		<input
-			class="w-full px-4 py-2 bg-gray-800 text-white rounded-lg"
-			bind:this={callInput}
-			placeholder="Call ID"
-			disabled
-		/>
-
-		<div class="flex space-x-4">
-			<button
-				class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
-				on:click={handleConnect}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
-			>
-
-			<button
-				class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300"
-				on:click={endWebRTC}>End Chat</button
+			<button class="bg-rose-500 text-white p-3 rounded-md text-md" on:click={endWebRTC}>End</button
 			>
 		</div>
 	</div>
-</div>
+	<Chat />
+</section>
+
+<MobileChat />
