@@ -1,4 +1,4 @@
-<section class="h-[28%] flex sm:flex-col md:flex-row items-center justify-evenly">
+<section class="hidden h-[28%] md:flex sm:flex-col md:flex-row items-center justify-evenly">
 	<div class="relative h-[90%] w-[48%] rounded-3xl overflow-hidden flex items-start">
 		<div class="w-full p-5 flex justify-center space-x-5 items-center">
 			<button class="bg-indigo-500 text-white p-3 rounded-md text-md">Skip / Connect</button>
