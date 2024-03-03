@@ -22,7 +22,8 @@
 		appId: '1:967984062313:web:4eba9e15c8304423b5a7f8'
 	};
 
-	import { user } from '$lib/stores/userStore';
+	import { user, remoteUser } from '$lib/stores/userStore';
+
 	import { goto } from '$app/navigation';
 
 	import Video from '../components/Video.svelte';
@@ -36,10 +37,8 @@
 	import { localStream, remoteStream } from '$lib/stores/streamStore';
 	import MobileChat from '../components/MobileChat.svelte';
 
-	let currentStatus: string = 'Idle, please press connect';
+	let currentStatus: string = 'Idle';
 
-	let localVideo: HTMLVideoElement;
-	let remoteVideo: HTMLVideoElement;
 	let callInput: HTMLInputElement;
 	let talkingToUser: string;
 
@@ -96,8 +95,7 @@
 			peerConnection.addTrack(track, $localStream ? $localStream : new MediaStream());
 		});
 
-		peerConnection.ontrack = (event) => {
-			currentStatus = 'Connected to ' + talkingToUser;
+		peerConnection.ontrack = async (event) => {
 			event.streams[0].getTracks().forEach((track) => {
 				$remoteStream?.addTrack(track);
 			});
@@ -105,19 +103,28 @@
 			event.streams[0].onremovetrack = ({ track }) => {
 				console.log('Track removed');
 			};
+
+			if (!$remoteUser) {
+				let res = await fetch(`/api/calls?callId=${callInput.value}`, {
+					method: 'GET'
+				});
+				let data = await res.json();
+				remoteUser.set(data.receiver);
+			}
+			currentStatus = 'Connected';
 		};
 
-		peerConnection.oniceconnectionstatechange = (event) => {
+		peerConnection.oniceconnectionstatechange = async (event) => {
 			if (peerConnection.iceConnectionState === 'disconnected') {
 				// TODO: For some reason this fires quite late even after user dissconnects
 				// Peer connection disconnected, you may consider this as no more remote data
 				console.log('Peer connection disconnected');
-				currentStatus = 'Idle, disconnected, please press connect';
+				currentStatus = 'Idle, disconnected';
+				await endWebRTC();
+				await initiateWebRTC();
 				// remoteStream.getTracks().forEach((track) => track.stop());
 			}
 		};
-		localVideo.srcObject = $localStream;
-		remoteVideo.srcObject = $remoteStream;
 	};
 
 	const handleConnect = async () => {
@@ -135,15 +142,23 @@
 			handleCall();
 			res = await fetch('/api/calls', {
 				method: 'POST',
-				body: JSON.stringify({ id: callInput.value, user: $user.name }),
+				body: JSON.stringify({ id: callInput.value, user: $user }),
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			});
-			currentStatus = 'Waiting to connect with someone...';
+			currentStatus = 'Finding someone...';
 		} else {
+			res = await fetch('/api/calls', {
+				method: 'POST',
+				body: JSON.stringify({ id: data.id, user: $user }),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			data = await res.json();
 			callInput.value = data.id;
-			talkingToUser = data.user;
+			remoteUser.set(data.user);
 			console.log('Handling answer?');
 			handleAnswer();
 		}
@@ -240,38 +255,54 @@
 	const endWebRTC = async () => {
 		// Close WebRTC connection and WebSocket connection
 		await peerConnection.close();
-
+		remoteUser.set(null);
+		remoteStream.set(null);
 		// Stop local media stream
 		// localStream.getTracks().forEach((track) => track.stop());
 	};
 </script>
 
 <section class="h-[85%] lg:h-[65%] flex flex-col lg:flex-row items-center justify-evenly">
-	<Video userName="Swas" userId="2023A7PS0043H" store={localStream} mute={true} />
-	<Video userName={talkingToUser} userId="2023A7PS0000H" store={remoteStream} mute={false} />
+	<Video who="you" />
+	<Video who="them" />
 </section>
 
-<section class="hidden h-[28%] md:flex sm:flex-col md:flex-row items-center justify-evenly">
+<section class="hidden h-[23%] md:flex sm:flex-col md:flex-row items-center justify-evenly">
 	<div class="relative h-[90%] w-[48%] rounded-3xl overflow-hidden flex items-start">
 		<div class="w-full p-5 flex justify-center space-x-5 items-center">
 			<div class="text-white bg-gray-800 rounded-lg px-4 py-2">
-				Status:
-				<span>{currentStatus}</span>
+				Status: {currentStatus}
 			</div>
 			<input
-				class="w-full px-4 py-2 bg-gray-800 text-white rounded-lg"
+				class="px-4 py-2 bg-gray-800 text-white rounded-lg"
 				bind:this={callInput}
 				placeholder="Call ID"
 				disabled
 			/>
-			<button class="bg-indigo-500 text-white p-3 rounded-md text-md" on:click={handleConnect}
+			<button class="bg-indigo-500 text-white py-2 px-4 rounded-md text-md" on:click={handleConnect}
 				>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
 			>
-			<button class="bg-rose-500 text-white p-3 rounded-md text-md" on:click={endWebRTC}>End</button
+			<button class="bg-rose-500 text-white py-2 px-4 rounded-md text-md" on:click={endWebRTC}
+				>End</button
 			>
 		</div>
 	</div>
-	<Chat />
+
+	<!-- <Chat /> -->
 </section>
 
-<MobileChat />
+{#if false}
+	<MobileChat />
+{:else}
+	<section class="w-full h-[8%] flex md:hidden justify-center">
+		<div class="text-white bg-gray-800 rounded-lg px-4 py-2 my-auto">
+			Status:
+			<span>{currentStatus}</span>
+		</div>
+
+		<button
+			class="bg-indigo-500 text-white p-2 rounded-lg text-md my-auto ml-4"
+			on:click={handleConnect}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
+		>
+	</section>
+{/if}

@@ -1,36 +1,62 @@
 <script lang="ts">
-	export let userName: string = 'User Name';
-	export let userId: string = '2023A7PS0000H';
-
 	import { onMount } from 'svelte';
+	import { user, remoteUser } from '$lib/stores/userStore';
+	import { localStream, remoteStream } from '$lib/stores/streamStore';
 
-	export let store: any;
-	export let mute: boolean = true;
+	export let who: 'you' | 'them' = 'you';
+
+	$: currentUser = who === 'you' ? user : remoteUser;
+	let storeStream = who === 'you' ? localStream : remoteStream;
 	let videoElement: HTMLVideoElement;
 
 	onMount(() => {
-		store.subscribe((stream: MediaStream) => {
+		storeStream.subscribe((stream: MediaStream | null) => {
+			console.log(stream);
+
 			videoElement.srcObject = stream;
+		});
+
+		currentUser.subscribe((user) => {
+			if (user) {
+				videoElement.classList.remove('hidden');
+			} else {
+				videoElement.classList.add('hidden');
+			}
 		});
 	});
 </script>
 
 <div class="relative h-[45%] w-[90%] lg:h-[90%] lg:w-[48%] rounded-3xl overflow-hidden">
 	<div
-		class="backdrop-blur-md absolute flex flex-col rounded-lg left-0 bottom-0 z-10 m-5 px-3 py-2"
+		class="backdrop-blur-sm absolute flex flex-col rounded-lg left-0 bottom-0 z-10 m-3 px-3 py-2"
 	>
-		<h2 class="text-xl text-gray-200">{userName}</h2>
-		<h2 class="text-sm text-gray-300">{userId}</h2>
+		{#if $currentUser}
+			<h2 class="text-sm lg:text-xl text-gray-200">{$currentUser.name}</h2>
+			<h2 class="text-xs lg:text-sm text-gray-300">{$currentUser.email}</h2>
+		{/if}
 	</div>
 
-	<video class="object-cover w-full h-full" bind:this={videoElement} autoplay muted={mute}>
-		<!-- Dummy track for accessibility -->
-		<track kind="captions" />
-	</video>
+	{#if who === 'you'}
+		<video class="object-cover w-full h-full camera" bind:this={videoElement} autoplay muted>
+			<!-- Dummy track for accessibility -->
+			<track kind="captions" />
+		</video>
+	{:else}
+		<video class="object-cover w-full h-full hidden camera" bind:this={videoElement} autoplay>
+			<!-- Dummy track for accessibility -->
+			<track kind="captions" />
+		</video>
+
+		<video class="object-cover w-full h-full" autoplay loop>
+			<source src="loading.mp4" />
+			<!-- Dummy track for accessibility -->
+			<track kind="captions" />
+		</video>
+	{/if}
 </div>
 
 <style>
-	video {
+	.camera {
 		transform: rotateY(180deg);
 		-webkit-transform: rotateY(180deg); /* Safari and Chrome */
 		-moz-transform: rotateY(180deg); /* Firefox */
