@@ -40,7 +40,6 @@
 	let currentStatus: string = 'Idle';
 
 	let callInput: HTMLInputElement;
-	let talkingToUser: string;
 
 	let peerConnection: RTCPeerConnection;
 
@@ -48,12 +47,15 @@
 		// Assuming you have a function to parse cookies
 		const userData = parseCookie(document.cookie).user;
 		if (userData) {
-			let d = JSON.parse(JSON.parse(userData));
-			d.name = d.name
-				.split(' ')
-				.map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase()) // convert to titlecase
-				.join(' ');
-			user.set(d);
+			fetch('/api/users', {
+				method: 'POST',
+				body: JSON.parse(userData),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			})
+				.then((res) => res.json())
+				.then((data) => user.set(data));
 		} else {
 			return goto('/signup');
 		}
@@ -75,7 +77,7 @@
 	};
 
 	const initiateWebRTC = async () => {
-		// Get user media
+		// Set remote stream to a new stream
 		remoteStream.set(new MediaStream());
 
 		// Set up WebRTC peer connection
@@ -142,12 +144,23 @@
 			handleCall();
 			res = await fetch('/api/calls', {
 				method: 'POST',
+				credentials: 'same-origin',
 				body: JSON.stringify({ id: callInput.value, user: $user }),
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			});
-			currentStatus = 'Finding someone...';
+			// TODO: perm fix, rn temp fix
+			data = await res.json();
+			if (data.id != callInput.value) {
+				// got connected to someone else even though there was no one before
+				callInput.value = data.id;
+				remoteUser.set(data.user);
+				console.log('Handling answer?');
+				handleAnswer();
+			} else {
+				currentStatus = 'Finding someone...';
+			}
 		} else {
 			res = await fetch('/api/calls', {
 				method: 'POST',
@@ -229,7 +242,7 @@
 		if (typeof callData == 'undefined') {
 			// Person didn't give permissions for camera but somehow connected?
 		}
-		const offerDescription = callData.offer;
+		const offerDescription = callData.offer; // ignore this
 		await peerConnection.setRemoteDescription(new RTCSessionDescription(offerDescription));
 
 		const answerDescription = await peerConnection.createAnswer();
@@ -254,9 +267,9 @@
 
 	const endWebRTC = async () => {
 		// Close WebRTC connection and WebSocket connection
-		await peerConnection.close();
 		remoteUser.set(null);
 		remoteStream.set(null);
+		await peerConnection.close();
 		// Stop local media stream
 		// localStream.getTracks().forEach((track) => track.stop());
 	};

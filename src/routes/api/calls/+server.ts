@@ -40,8 +40,23 @@ export const GET = ({ request }) => {
 	return resp;
 };
 
-export const POST = async ({ request }) => {
+const getUserData = async (access_token: string) => {
+	const response = await fetch(
+		`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
+	);
+	const data = await response.json();
+	// convert to titlecase
+	data.name = data.name
+		.split(' ')
+		.map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
+		.join(' ');
+	return data;
+};
+
+export const POST = async ({ request, cookies }) => {
+	const userCookie = JSON.parse(JSON.parse(cookies.get('user') || ''));
 	const body = await request.json();
+	body.user = await getUserData(userCookie.access_token);
 	let resp: Response;
 	if (waiting === null) {
 		console.log(body.id, body.user.name, 'is waiting for someone');

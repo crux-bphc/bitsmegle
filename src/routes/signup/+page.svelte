@@ -1,4 +1,4 @@
-<div class="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
+<div class="flex flex-col items-center justify-center h-[80%] text-white">
 	<h1 class="text-3xl font-bold mb-6">Signup for BITSmegle</h1>
 
 	<div class="flex flex-col items-center space-y-4">

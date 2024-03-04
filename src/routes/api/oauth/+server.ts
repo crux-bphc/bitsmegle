@@ -28,8 +28,8 @@ export const GET = async ({ url }) => {
 		const user = oAuth2Client.credentials;
 		console.log('credentials', user);
 
-		let data = await getUserData(user.access_token);
-		const userData = JSON.stringify(data); // Be cautious with what you include here
+		// let data = await getUserData(user.access_token);
+		const userData = JSON.stringify(user);
 
 		// Serialize your user data or a session token into a cookie
 		const serializedCookie = cookie.serialize('user', JSON.stringify(userData), {
@@ -58,4 +58,10 @@ export const GET = async ({ url }) => {
 			}
 		});
 	}
+};
+
+export const POST = async ({ request }) => {
+	const body = await request.json();
+
+	return new Response(JSON.stringify(getUserData(body.access_token)), { status: 200 });
 };
