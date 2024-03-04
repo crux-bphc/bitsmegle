@@ -31,23 +31,20 @@ const getUserData = async (access_token: string) => {
 };
 
 export const POST = async ({ request }) => {
-	const body = await request.json();
+	const body = JSON.parse(await request.json());
 
 	// Try fetching user data with access token
-
 	let data = await getUserData(body.access_token);
 	if (data.name !== undefined) {
 		console.log(data.name, 'has logged in');
 		return new Response(JSON.stringify(data), { status: 200 });
 	}
 	// Handle expiration error specifically
-	// Refresh logic goes here
 	console.error('Access token expired, attempting refresh');
-	// Replace with your refresh token logic
-	// This section needs to be implemented based on your authentication flow
-	// It should fetch a new access token using a refresh token and retry
-	// getUserData with the new token
 	const newTokens = await refreshToken(body.refresh_token);
+	newTokens.refresh_token = body.refresh_token; // Preserve the refresh token
+	newTokens.expiry_date = Date.now() + newTokens.expires_in * 1000; // Calculate the new expiry date
+	console.log('newTokens', newTokens);
 	data = await getUserData(newTokens.access_token);
 	console.log(data.name, 'has logged in (after refresh)');
 	const serializedCookie = cookie.serialize('user', JSON.stringify(newTokens), {
@@ -66,8 +63,8 @@ export const POST = async ({ request }) => {
 async function refreshToken(refresh_token: string) {
 	const url = 'https://oauth2.googleapis.com/token'; // Google token endpoint
 	const body = new URLSearchParams({
-		client_id: SECRET_CLIENT_ID, // Replace with your client ID
-		client_secret: SECRET_CLIENT_SECRET, // Replace with your client secret
+		client_id: SECRET_CLIENT_ID,
+		client_secret: SECRET_CLIENT_SECRET,
 		refresh_token,
 		grant_type: 'refresh_token'
 	});

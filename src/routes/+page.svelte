@@ -47,7 +47,7 @@
 		if (userData) {
 			fetch('/api/users', {
 				method: 'POST',
-				body: JSON.parse(userData),
+				body: userData,
 				headers: {
 					'Content-Type': 'application/json'
 				}

@@ -19,11 +19,11 @@
 			.then((data) => (currentOnlineCount = data.count));
 	};
 
-	const checkExpiration = (userData) => {
-		if (userData && JSON.parse(JSON.parse(userData)).expiry_date < Date.now()) {
+	const checkExpiration = (userData: string) => {
+		if (userData && JSON.parse(userData).expiry_date < Date.now()) {
 			fetch('/api/users', {
 				method: 'POST',
-				body: JSON.parse(userData),
+				body: userData,
 				headers: {
 					'Content-Type': 'application/json'
 				}

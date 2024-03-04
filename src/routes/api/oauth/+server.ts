@@ -4,7 +4,7 @@ import { SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, REDIRECT_URI } from '$env/stati
 
 export const GET = async ({ url }) => {
 	const redirectURL = REDIRECT_URI + '/api/oauth';
-	console.log(redirectURL);
+
 	const code = await url.searchParams.get('code');
 
 	//console.log('returned state',state)

@@ -56,6 +56,7 @@
 			bind:this={videoElement}
 			on:click={handleNameplateClick}
 			autoplay
+			playsinline
 			muted
 		>
 			<!-- Dummy track for accessibility -->
@@ -67,6 +68,7 @@
 			bind:this={videoElement}
 			on:click={handleNameplateClick}
 			autoplay
+			playsinline
 		>
 			<!-- Dummy track for accessibility -->
 			<track kind="captions" />

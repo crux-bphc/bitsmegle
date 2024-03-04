@@ -69,6 +69,7 @@ export const POST = async ({ request, cookies }) => {
 			caller: waitingUser,
 			receiver: body.user
 		});
+		console.log(waiting, waitingUser?.name, 'is now calling', body.user.name);
 		resp = new Response(JSON.stringify({ id: waiting, user: waitingUser }), { status: 200 });
 		waiting = null;
 		waitingUser = null;
