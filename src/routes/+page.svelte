@@ -262,13 +262,13 @@
 	};
 </script>
 
-<section class="h-[85%] lg:h-[65%] flex flex-col lg:flex-row items-center justify-evenly">
+<section class="h-[85%] lg:h-[75%] flex flex-col lg:flex-row items-center justify-evenly">
 	<Video who="you" />
 	<Video who="them" />
 </section>
 
-<section class="hidden h-[23%] md:flex sm:flex-col md:flex-row items-center justify-evenly">
-	<div class="relative h-[90%] w-[48%] rounded-3xl overflow-hidden flex items-start">
+<section class="hidden h-[13%] md:flex sm:flex-col md:flex-row items-center justify-evenly">
+	<div class="relative h-[90%] w-[48%] rounded-3xl flex items-start">
 		<div class="w-full p-5 flex justify-center space-x-5 items-center">
 			<div class="text-white bg-gray-800 rounded-lg px-4 py-2">
 				Status: {currentStatus}
