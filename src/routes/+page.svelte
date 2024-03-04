@@ -279,8 +279,10 @@
 				placeholder="Call ID"
 				disabled
 			/>
-			<button class="bg-indigo-500 text-white py-2 px-4 rounded-md text-md" on:click={handleConnect}
-				>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
+			<button
+				class="bg-indigo-500 text-white py-2 px-4 rounded-md text-md"
+				disabled={currentStatus[0] == 'F'}
+				on:click={handleConnect}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
 			>
 			<button class="bg-rose-500 text-white py-2 px-4 rounded-md text-md" on:click={endWebRTC}
 				>End</button
@@ -302,7 +304,8 @@
 
 		<button
 			class="bg-indigo-500 text-white p-2 rounded-lg text-md my-auto ml-4"
-			on:click={handleConnect}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
+			on:click={handleConnect}
+			disabled={currentStatus[0] == 'F'}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
 		>
 	</section>
 {/if}
