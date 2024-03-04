@@ -3,15 +3,39 @@
 	import { user } from '$lib/stores/userStore';
 
 	let currentOnlineCount: number = 0;
+	const parseCookie = (cookieString: string): Record<string, string> => {
+		const cookies: Record<string, string> = {};
+		cookieString.split(';').forEach((cookie) => {
+			const [cookieName, cookieValue] = cookie
+				.split('=')
+				.map((part) => decodeURIComponent(part.trim()));
+			cookies[cookieName] = cookieValue || '';
+		});
+		return cookies;
+	};
 	const setCurrentOnlineCount = () => {
 		fetch('api/users')
 			.then((res) => res.json())
 			.then((data) => (currentOnlineCount = data.count));
 	};
 
+	const checkExpiration = (userData) => {
+		if (userData && JSON.parse(JSON.parse(userData)).expiry_date < Date.now()) {
+			fetch('/api/users', {
+				method: 'POST',
+				body: JSON.parse(userData),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+		}
+	};
+
 	onMount(() => {
 		setCurrentOnlineCount();
-		setInterval(() => setCurrentOnlineCount(), 5 * 1000);
+		setInterval(() => setCurrentOnlineCount(), 5 * 1000); // Every 5 seconds
+		const userData = parseCookie(document.cookie).user;
+		setInterval(() => checkExpiration(userData), 60 * 1000); // Every minute
 	});
 </script>
 
