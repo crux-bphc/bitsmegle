@@ -24,8 +24,6 @@
 
 	import { user, remoteUser } from '$lib/stores/userStore';
 
-	import { goto } from '$app/navigation';
-
 	import Video from '../components/Video.svelte';
 	import Chat from '../components/Chat.svelte';
 
@@ -42,9 +40,9 @@
 	let callInput: HTMLInputElement;
 
 	let peerConnection: RTCPeerConnection;
+	import { goto } from '$app/navigation';
 
 	onMount(async () => {
-		// Assuming you have a function to parse cookies
 		const userData = parseCookie(document.cookie).user;
 		if (userData) {
 			fetch('/api/users', {
@@ -59,7 +57,6 @@
 		} else {
 			return goto('/signup');
 		}
-
 		const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 		localStream.set(stream);
 		await initiateWebRTC();
@@ -275,50 +272,52 @@
 	};
 </script>
 
-<section class="h-[85%] lg:h-[75%] flex flex-col lg:flex-row items-center justify-evenly">
-	<Video who="you" />
-	<Video who="them" />
-</section>
-
-<section class="hidden h-[13%] md:flex sm:flex-col md:flex-row items-center justify-evenly">
-	<div class="relative h-[90%] w-[48%] rounded-3xl flex items-start">
-		<div class="w-full p-5 flex justify-center space-x-5 items-center">
-			<div class="text-white bg-gray-800 rounded-lg px-4 py-2">
-				Status: {currentStatus}
-			</div>
-			<input
-				class="px-4 py-2 bg-gray-800 text-white rounded-lg"
-				bind:this={callInput}
-				placeholder="Call ID"
-				disabled
-			/>
-			<button
-				class="bg-indigo-500 text-white py-2 px-4 rounded-md text-md"
-				disabled={currentStatus[0] == 'F'}
-				on:click={handleConnect}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
-			>
-			<button class="bg-rose-500 text-white py-2 px-4 rounded-md text-md" on:click={endWebRTC}
-				>End</button
-			>
-		</div>
-	</div>
-
-	<!-- <Chat /> -->
-</section>
-
-{#if false}
-	<MobileChat />
-{:else}
-	<section class="w-full h-[8%] flex md:hidden justify-center">
-		<div class="text-white bg-gray-800 rounded-lg px-4 py-2 my-auto">
-			Status:
-			<span>{currentStatus}</span>
-		</div>
-
-		<button
-			class="bg-indigo-500 text-white p-2 rounded-lg text-md my-auto ml-4"
-			on:click={handleConnect}
-			disabled={currentStatus[0] == 'F'}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
-		>
+{#if $user}
+	<section class="h-[85%] lg:h-[75%] flex flex-col lg:flex-row items-center justify-evenly">
+		<Video who="you" />
+		<Video who="them" />
 	</section>
+
+	<section class="hidden h-[13%] md:flex sm:flex-col md:flex-row items-center justify-evenly">
+		<div class="relative h-[90%] w-[48%] rounded-3xl flex items-start">
+			<div class="w-full p-5 flex justify-center space-x-5 items-center">
+				<div class="text-white bg-gray-800 rounded-lg px-4 py-2">
+					Status: {currentStatus}
+				</div>
+				<input
+					class="px-4 py-2 bg-gray-800 text-white rounded-lg"
+					bind:this={callInput}
+					placeholder="Call ID"
+					disabled
+				/>
+				<button
+					class="bg-indigo-500 text-white py-2 px-4 rounded-md text-md"
+					disabled={currentStatus[0] == 'F'}
+					on:click={handleConnect}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
+				>
+				<button class="bg-rose-500 text-white py-2 px-4 rounded-md text-md" on:click={endWebRTC}
+					>End</button
+				>
+			</div>
+		</div>
+
+		<!-- <Chat /> -->
+	</section>
+
+	{#if false}
+		<MobileChat />
+	{:else}
+		<section class="w-full h-[8%] flex md:hidden justify-center">
+			<div class="text-white bg-gray-800 rounded-lg px-4 py-2 my-auto">
+				Status:
+				<span>{currentStatus}</span>
+			</div>
+
+			<button
+				class="bg-indigo-500 text-white p-2 rounded-lg text-md my-auto ml-4"
+				on:click={handleConnect}
+				disabled={currentStatus[0] == 'F'}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
+			>
+		</section>
+	{/if}
 {/if}

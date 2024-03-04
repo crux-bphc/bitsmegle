@@ -5,7 +5,7 @@ import { SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, REDIRECT_URI } from '$env/stati
 export const actions = {
 	OAuth2: async ({}) => {
 		const redirectURL = REDIRECT_URI + '/api/oauth';
-
+		console.log(redirectURL);
 		const oAuth2Client = new OAuth2Client(SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, redirectURL);
 
 		// Generate the url that will be used for the consent dialog.

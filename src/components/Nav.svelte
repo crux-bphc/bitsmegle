@@ -26,11 +26,13 @@
 		<div class="py-1 px-2.5 bg-emerald-900 text-emerald-400 rounded-lg mr-4">
 			<i class="fas fa-user text-sm"></i> <span>{currentOnlineCount}</span>
 		</div>
-		<img
-			class="h-[60%] lg:h-[50%] rounded-full overflow-hidden"
-			src={$user?.picture ||
-				'https://static.vecteezy.com/system/resources/previews/019/879/186/original/user-icon-on-transparent-background-free-png.png'}
-			alt="Profile"
-		/>
+		{#if $user}
+			<img
+				class="h-[60%] lg:h-[50%] rounded-full overflow-hidden"
+				src={$user?.picture ||
+					'https://static.vecteezy.com/system/resources/previews/019/879/186/original/user-icon-on-transparent-background-free-png.png'}
+				alt="Profile"
+			/>
+		{/if}
 	</div>
 </nav>
