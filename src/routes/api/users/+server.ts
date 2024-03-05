@@ -31,7 +31,13 @@ const getUserData = async (access_token: string) => {
 };
 
 export const POST = async ({ request }) => {
-	const body = JSON.parse(await request.json());
+	let body = await request.json();
+
+	if (typeof body.access_token !== 'string') {
+		body = JSON.parse(body);
+	}
+
+	console.log(body.access_token);
 
 	// Try fetching user data with access token
 	let data = await getUserData(body.access_token);

@@ -23,9 +23,20 @@
 	};
 
 	import { user, remoteUser } from '$lib/stores/userStore';
+	import { socket } from '$lib/stores/socketStore';
 
 	import Video from '../components/Video.svelte';
 	import Chat from '../components/Chat.svelte';
+
+	import { io } from 'socket.io-client';
+
+	if ($socket !== null) {
+		socket.set(io());
+
+		$socket?.on('eventFromServer', (message) => {
+			console.log(message);
+		});
+	}
 
 	// Initialize Firebase
 	const app = initializeApp(firebaseConfig);

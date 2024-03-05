@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { user } from '$lib/stores/userStore';
+	import { socket } from '$lib/stores/socketStore';
+	import { io } from 'socket.io-client';
 
-	let currentOnlineCount: number = 0;
+	$: currentOnlineCount = 1;
 	const parseCookie = (cookieString: string): Record<string, string> => {
 		const cookies: Record<string, string> = {};
 		cookieString.split(';').forEach((cookie) => {
@@ -13,11 +15,12 @@
 		});
 		return cookies;
 	};
-	const setCurrentOnlineCount = () => {
-		fetch('api/users')
-			.then((res) => res.json())
-			.then((data) => (currentOnlineCount = data.count));
-	};
+
+	// const setCurrentOnlineCount = () => {
+	// 	fetch('api/users')
+	// 		.then((res) => res.json())
+	// 		.then((data) => (currentOnlineCount = data.count));
+	// };
 
 	const checkExpiration = (userData: string) => {
 		if (userData && JSON.parse(userData).expiry_date < Date.now()) {
@@ -32,8 +35,20 @@
 	};
 
 	onMount(() => {
-		setCurrentOnlineCount();
-		setInterval(() => setCurrentOnlineCount(), 5 * 1000); // Every 5 seconds
+		if ($socket === null) {
+			socket.set(io());
+
+			$socket?.on('eventFromServer', (message) => {
+				console.log(message);
+			});
+
+			$socket?.on('userCountChange', (count) => {
+				console.log('changed to', count);
+				currentOnlineCount = count;
+			});
+		}
+		// setCurrentOnlineCount();
+		// setInterval(() => setCurrentOnlineCount(), 5 * 1000); // Every 5 seconds
 		const userData = parseCookie(document.cookie).user;
 		setInterval(() => checkExpiration(userData), 60 * 1000); // Every minute
 	});
