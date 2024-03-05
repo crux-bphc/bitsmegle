@@ -231,6 +231,13 @@
 		// Stop local media stream
 		// localStream.getTracks().forEach((track) => track.stop());
 	};
+
+	let running = true;
+	const closeEverything = async () => {
+		$localStream?.getTracks().forEach((track) => track.stop());
+		running = false;
+		await endWebRTC();
+	};
 </script>
 
 {#if $user}
@@ -250,14 +257,16 @@
 					bind:this={callInput}
 					placeholder="Call ID"
 					disabled
+					hidden
 				/>
 				<button
 					class="bg-indigo-500 text-white py-2 px-4 rounded-md text-md"
 					disabled={currentStatus[0] == 'F'}
 					on:click={handleConnect}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
 				>
-				<button class="bg-rose-500 text-white py-2 px-4 rounded-md text-md" on:click={endWebRTC}
-					>End</button
+				<button
+					class="bg-rose-500 text-white py-2 px-4 rounded-md text-md"
+					on:click={closeEverything}>End</button
 				>
 			</div>
 		</div>
@@ -275,9 +284,14 @@
 			</div>
 
 			<button
-				class="bg-indigo-500 text-white p-2 rounded-lg text-md my-auto ml-4"
+				class="bg-indigo-600 text-white p-2 rounded-lg text-md my-auto ml-4 disabled:opacity-50"
 				on:click={handleConnect}
-				disabled={currentStatus[0] == 'F'}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
+				disabled={currentStatus[0] == 'F' && running}
+				>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
+			>
+			<button
+				class="bg-rose-600 text-white py-2 px-4 rounded-md text-md my-auto ml-4"
+				on:click={closeEverything}>End</button
 			>
 		</section>
 	{/if}
