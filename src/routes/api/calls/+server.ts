@@ -54,7 +54,10 @@ const getUserData = async (access_token: string) => {
 };
 
 export const POST = async ({ request, cookies }) => {
-	const userCookie = JSON.parse(JSON.parse(cookies.get('user') || ''));
+	let userCookie = JSON.parse(cookies.get('user') || '');
+	if (typeof userCookie !== 'object') {
+		userCookie = JSON.parse(userCookie);
+	}
 	const body = await request.json();
 	body.user = await getUserData(userCookie.access_token);
 	let resp: Response;

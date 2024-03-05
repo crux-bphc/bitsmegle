@@ -1,47 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { initializeApp } from 'firebase/app';
-	import {
-		getFirestore,
-		collection,
-		doc,
-		onSnapshot,
-		addDoc,
-		setDoc,
-		getDoc,
-		updateDoc
-	} from 'firebase/firestore';
-
-	const firebaseConfig = {
-		apiKey: 'AIzaSyDpH24F34f7iaLMX99pjvSWjQ0B-lCZXTQ',
-		authDomain: 'bitsmegle.firebaseapp.com',
-		projectId: 'bitsmegle',
-		storageBucket: 'bitsmegle.appspot.com',
-		messagingSenderId: '967984062313',
-		appId: '1:967984062313:web:4eba9e15c8304423b5a7f8'
-	};
-
 	import { user, remoteUser } from '$lib/stores/userStore';
 	import { socket } from '$lib/stores/socketStore';
 
 	import Video from '../components/Video.svelte';
 	import Chat from '../components/Chat.svelte';
-
-	import { io } from 'socket.io-client';
-
-	if ($socket !== null) {
-		socket.set(io());
-
-		$socket?.on('eventFromServer', (message) => {
-			console.log(message);
-		});
-	}
-
-	// Initialize Firebase
-	const app = initializeApp(firebaseConfig);
-
-	const firestore = getFirestore(app);
 
 	import { localStream, remoteStream } from '$lib/stores/streamStore';
 	import MobileChat from '../components/MobileChat.svelte';
@@ -71,6 +35,41 @@
 		const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 		localStream.set(stream);
 		await initiateWebRTC();
+
+		// Listen for remote answer
+		$socket?.on('answer-made', async (data) => {
+			if (data.answer) {
+				await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+			}
+		});
+
+		// When answered, add candidate to peer connection
+		$socket?.on('add-ice-candidate', (data) => {
+			console.log(data);
+			if (data.candidate) {
+				peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+				console.log('Added ice candidate');
+			}
+		});
+
+		$socket?.on('call-data', async (data) => {
+			data = JSON.parse(data);
+			if (typeof data == 'undefined') {
+				// Person didn't give permissions for camera but somehow connected?
+			}
+			console.log(data);
+			const offerDescription = new RTCSessionDescription(data.offer); // ignore this
+			await peerConnection.setRemoteDescription(offerDescription);
+			const answerDescription = await peerConnection.createAnswer();
+			await peerConnection.setLocalDescription(answerDescription);
+
+			const answer = {
+				type: answerDescription.type,
+				sdp: answerDescription.sdp
+			};
+
+			$socket?.emit('make-answer', { callId: data.callId, answer });
+		});
 	});
 
 	const parseCookie = (cookieString: string): Record<string, string> => {
@@ -149,7 +148,7 @@
 		let data = await res.json();
 		console.log(data);
 		if (!data.id) {
-			handleCall();
+			await handleCall();
 			res = await fetch('/api/calls', {
 				method: 'POST',
 				credentials: 'same-origin',
@@ -165,7 +164,7 @@
 				callInput.value = data.id;
 				remoteUser.set(data.user);
 				console.log('Handling answer?');
-				handleAnswer();
+				await handleAnswer();
 			} else {
 				currentStatus = 'Finding someone...';
 			}
@@ -181,26 +180,16 @@
 			callInput.value = data.id;
 			remoteUser.set(data.user);
 			console.log('Handling answer?');
-			handleAnswer();
+			await handleAnswer();
 		}
 	};
 
 	const handleCall = async () => {
-		// Reference Firestore collections for signaling
-		const callDocRef = doc(collection(firestore, 'calls'));
-		const offerCandidatesRef = collection(callDocRef, 'offerCandidates');
-		const answerCandidatesRef = collection(callDocRef, 'answerCandidates');
+		const callId = crypto.randomUUID();
 
-		callInput.value = callDocRef.id;
-
-		// Get candidates for caller, save to db
-		peerConnection.onicecandidate = async (event) => {
-			if (event.candidate) {
-				await addDoc(offerCandidatesRef, event.candidate.toJSON());
-			}
-		};
-
+		callInput.value = callId;
 		// Create offer
+
 		const offerDescription = await peerConnection.createOffer();
 		await peerConnection.setLocalDescription(offerDescription);
 
@@ -209,68 +198,27 @@
 			type: offerDescription.type
 		};
 
-		await setDoc(callDocRef, { offer });
+		$socket?.emit('make-offer', { callId, offer });
 
-		// Listen for remote answer
-		onSnapshot(callDocRef, (snapshot) => {
-			const data = snapshot.data();
-			if (!peerConnection.currentRemoteDescription && data?.answer) {
-				const answerDescription = new RTCSessionDescription(data.answer);
-				peerConnection.setRemoteDescription(answerDescription);
+		// Get candidates for caller, save to db
+		peerConnection.onicecandidate = async (event) => {
+			if (event.candidate) {
+				$socket?.emit('offerCandidate', { callId, candidate: event.candidate.toJSON() });
 			}
-		});
-
-		// When answered, add candidate to peer connection
-		onSnapshot(answerCandidatesRef, (snapshot) => {
-			snapshot.docChanges().forEach((change) => {
-				if (change.type === 'added') {
-					const candidate = new RTCIceCandidate(change.doc.data());
-					peerConnection.addIceCandidate(candidate);
-				}
-			});
-		});
+		};
 	};
 
 	const handleAnswer = async () => {
 		const callId = callInput.value;
 		console.log(callId);
-		const callDocRef = doc(firestore, 'calls', callId);
-		const answerCandidatesRef = collection(callDocRef, 'answerCandidates');
-		const offerCandidatesRef = collection(callDocRef, 'offerCandidates');
 
 		peerConnection.onicecandidate = async (event) => {
 			if (event.candidate) {
-				await addDoc(answerCandidatesRef, event.candidate.toJSON());
+				$socket?.emit('answerCandidate', { callId, candidate: event.candidate.toJSON() });
 			}
 		};
 
-		const callDocSnapshot = await getDoc(callDocRef);
-		const callData = callDocSnapshot.data();
-
-		if (typeof callData == 'undefined') {
-			// Person didn't give permissions for camera but somehow connected?
-		}
-		const offerDescription = callData.offer; // ignore this
-		await peerConnection.setRemoteDescription(new RTCSessionDescription(offerDescription));
-
-		const answerDescription = await peerConnection.createAnswer();
-		await peerConnection.setLocalDescription(answerDescription);
-
-		const answer = {
-			type: answerDescription.type,
-			sdp: answerDescription.sdp
-		};
-
-		await updateDoc(callDocRef, { answer });
-
-		onSnapshot(offerCandidatesRef, (snapshot) => {
-			snapshot.docChanges().forEach((change) => {
-				if (change.type === 'added') {
-					const data = change.doc.data();
-					peerConnection.addIceCandidate(new RTCIceCandidate(data));
-				}
-			});
-		});
+		$socket?.emit('call-accepted', { callId });
 	};
 
 	const endWebRTC = async () => {
@@ -278,6 +226,8 @@
 		remoteUser.set(null);
 		remoteStream.set(null);
 		await peerConnection.close();
+		// RTCDataChannel.close()
+
 		// Stop local media stream
 		// localStream.getTracks().forEach((track) => track.stop());
 	};
