@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import Loader from './Loader.svelte';
+	import { currentStatus } from '$lib/stores/statusStore';
 	import { user, remoteUser } from '$lib/stores/userStore';
 	import { localStream, remoteStream } from '$lib/stores/streamStore';
 
 	export let who: 'you' | 'them' = 'you';
 
+	$: status = $currentStatus;
 	$: currentUser = who === 'you' ? user : remoteUser;
 	let storeStream = who === 'you' ? localStream : remoteStream;
 	let videoElement: HTMLVideoElement;
@@ -74,11 +77,18 @@
 			<track kind="captions" />
 		</video>
 
-		<video class="object-cover w-full h-full" autoplay loop>
+		<!-- <video class="object-cover w-full h-full" autoplay loop>
 			<source src="loading.mp4" />
-			<!-- Dummy track for accessibility -->
 			<track kind="captions" />
-		</video>
+		</video> -->
+
+		{#if status[0] === 'F'}
+			<Loader />
+		{:else}
+			<div class="bg-slate-900 w-full h-full flex items-center justify-center">
+				<img src="loader.png" alt="Loader" class="scale-[55%]" />
+			</div>
+		{/if}
 	{/if}
 </div>
 

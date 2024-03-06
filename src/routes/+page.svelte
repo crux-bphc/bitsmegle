@@ -10,7 +10,8 @@
 	import { localStream, remoteStream } from '$lib/stores/streamStore';
 	import MobileChat from '../components/MobileChat.svelte';
 
-	let currentStatus: string = 'Idle';
+	import { currentStatus } from '$lib/stores/statusStore';
+	$currentStatus = 'Idle';
 
 	let callInput: HTMLInputElement;
 
@@ -120,7 +121,7 @@
 				let data = await res.json();
 				remoteUser.set(data.receiver);
 			}
-			currentStatus = 'Connected';
+			$currentStatus = 'Connected';
 		};
 
 		peerConnection.oniceconnectionstatechange = async (event) => {
@@ -128,7 +129,7 @@
 				// TODO: For some reason this fires quite late even after user dissconnects
 				// Peer connection disconnected, you may consider this as no more remote data
 				console.log('Peer connection disconnected');
-				currentStatus = 'Idle, disconnected';
+				$currentStatus = 'Idle, disconnected';
 				await endWebRTC();
 				await initiateWebRTC();
 				// remoteStream.getTracks().forEach((track) => track.stop());
@@ -137,7 +138,7 @@
 	};
 
 	const handleConnect = async () => {
-		if (currentStatus[0] === 'C') {
+		if ($currentStatus[0] === 'C') {
 			await endWebRTC();
 			await initiateWebRTC();
 		}
@@ -166,7 +167,7 @@
 				console.log('Handling answer?');
 				await handleAnswer();
 			} else {
-				currentStatus = 'Finding someone...';
+				$currentStatus = 'Finding someone...';
 			}
 		} else {
 			res = await fetch('/api/calls', {
@@ -235,6 +236,7 @@
 	let running = true;
 	const closeEverything = async () => {
 		$localStream?.getTracks().forEach((track) => track.stop());
+		$currentStatus = 'Idle, stopped';
 		running = false;
 		await endWebRTC();
 	};
@@ -250,7 +252,7 @@
 		<div class="relative h-[90%] w-[48%] rounded-3xl flex items-start">
 			<div class="w-full p-5 flex justify-center space-x-5 items-center">
 				<div class="text-white bg-gray-800 rounded-lg px-4 py-2">
-					Status: {currentStatus}
+					Status: {$currentStatus}
 				</div>
 				<input
 					class="px-4 py-2 bg-gray-800 text-white rounded-lg"
@@ -261,8 +263,8 @@
 				/>
 				<button
 					class="bg-indigo-500 text-white py-2 px-4 rounded-md text-md"
-					disabled={currentStatus[0] == 'F'}
-					on:click={handleConnect}>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
+					disabled={$currentStatus[0] == 'F'}
+					on:click={handleConnect}>{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
 				>
 				<button
 					class="bg-rose-500 text-white py-2 px-4 rounded-md text-md"
@@ -280,14 +282,14 @@
 		<section class="w-full h-[8%] flex md:hidden justify-center">
 			<div class="text-white bg-gray-800 rounded-lg px-4 py-2 my-auto">
 				Status:
-				<span>{currentStatus}</span>
+				<span>{$currentStatus}</span>
 			</div>
 
 			<button
 				class="bg-indigo-600 text-white p-2 rounded-lg text-md my-auto ml-4 disabled:opacity-50"
 				on:click={handleConnect}
-				disabled={currentStatus[0] == 'F' && running}
-				>{currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
+				disabled={$currentStatus[0] == 'F' && running}
+				>{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
 			>
 			<button
 				class="bg-rose-600 text-white py-2 px-4 rounded-md text-md my-auto ml-4"
