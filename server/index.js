@@ -12,7 +12,7 @@ const server = createServer(app);
 
 const io = new Server(server, {
 	cors: {
-		origin: '*'
+		origin: ['https://bitsmegle.vercel.app', 'http://localhost:5173']
 	}
 });
 
@@ -20,31 +20,53 @@ let userCount = 0;
 let calls = [];
 
 io.on('connection', (socket) => {
-	console.log('WS: User connected');
+	console.log('User connected');
 	userCount += 1;
 	io.sockets.emit('userCountChange', userCount);
 	socket.on('disconnect', () => {
-		console.log('WS: User disconnected');
+		console.log('User disconnected');
 		userCount -= 1;
 		io.sockets.emit('userCountChange', userCount);
 	});
 
+	socket.on('looking-for-somebody', (data) => {
+		console.log(data.name, 'is looking for somebody');
+		// find a call maker who is also looking for somebody
+		let call = calls.find(
+			(call) => call.answer === null && call.offerMaker !== socket && !call.paired
+		);
+
+		if (call) {
+			console.log('Call found', call.callId);
+			console.log(data.name, 'is paired with', call.offerMakerUser.name);
+			call.paired = true;
+			call.answerMakerUser = data;
+			socket.emit('call-found', call.callId);
+		} else {
+			console.log('Call not found');
+			socket.emit('call-not-found', null);
+		}
+	});
+
 	socket.on('make-offer', (data) => {
-		console.log('WS: Offer Made');
+		console.log('Offer Made');
 
 		calls.push({
 			callId: data.callId,
 			offer: data.offer,
 			offerMaker: socket,
+			offerMakerUser: data.user,
 			answer: null,
 			answerMaker: null,
+			answerMakerUser: null,
 			offerCandidates: [],
-			answerCandidates: []
+			answerCandidates: [],
+			paired: false
 		});
 	});
 
 	socket.on('offerCandidate', (data) => {
-		console.log('WS: Offer Candidate received');
+		// console.log(' Offer Candidate received');
 		let call = calls.find((call) => call.callId === data.callId);
 		if (call) {
 			call.offerCandidates.push(data.candidate);
@@ -53,7 +75,7 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('make-answer', (data) => {
-		console.log('WS: Answer Made');
+		console.log(' Answer Made');
 		let call = calls.find((call) => call.callId === data.callId);
 		if (call) {
 			call.answer = data.answer;
@@ -62,7 +84,7 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('answerCandidate', (data) => {
-		console.log('WS: Answer Candidate');
+		// console.log(' Answer Candidate');
 		let call = calls.find((call) => call.callId === data.callId);
 		if (call) {
 			call.answerCandidates = data.candidate;
@@ -71,7 +93,7 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('call-accepted', (data) => {
-		console.log('WS: Call Accepted');
+		console.log(' Call Accepted');
 		let call = calls.find((call) => call.callId === data.callId);
 		if (call) {
 			call.answerMaker = socket;
@@ -79,6 +101,18 @@ io.on('connection', (socket) => {
 				'call-data',
 				JSON.stringify({ callId: data.callId, offer: call.offer })
 			);
+		}
+	});
+
+	socket.on('who-is-remote', (data) => {
+		let call = calls.find((call) => call.callId === data.callId);
+		if (call) {
+			// offerMakerUser if user is answerMakerUser and vice versa
+			if (call.offerMaker === socket) {
+				socket.emit('remote-user', call.answerMakerUser);
+			} else {
+				socket.emit('remote-user', call.offerMakerUser);
+			}
 		}
 	});
 });

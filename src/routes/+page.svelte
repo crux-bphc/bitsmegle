@@ -81,6 +81,23 @@
 
 			$socket?.emit('make-answer', { callId: data.callId, answer });
 		});
+
+		$socket?.on('call-found', async (data) => {
+			callInput.value = data;
+			console.log('Handling answer...');
+			await handleAnswer();
+		});
+
+		$socket?.on('call-not-found', async () => {
+			console.log('Creating call...');
+			await handleCall();
+			$currentStatus = 'Finding someone...';
+		});
+
+		$socket?.on('remote-user', (data) => {
+			console.log('Remote user:', data);
+			remoteUser.set(data);
+		});
 	});
 
 	const parseCookie = (cookieString: string): Record<string, string> => {
@@ -124,13 +141,8 @@
 				console.log('Track removed');
 			};
 
-			if (!$remoteUser) {
-				let res = await fetch(`/api/calls?callId=${callInput.value}`, {
-					method: 'GET'
-				});
-				let data = await res.json();
-				remoteUser.set(data.receiver);
-			}
+			$socket?.emit('who-is-remote', { callId: callInput.value });
+
 			$currentStatus = 'Connected';
 		};
 
@@ -153,46 +165,48 @@
 			await initiateWebRTC();
 		}
 
-		let res = await fetch('/api/calls', {
-			method: 'GET'
-		});
-		let data = await res.json();
-		console.log(data);
-		if (!data.id) {
-			await handleCall();
-			res = await fetch('/api/calls', {
-				method: 'POST',
-				credentials: 'same-origin',
-				body: JSON.stringify({ id: callInput.value, user: $user }),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			// TODO: perm fix, rn temp fix
-			data = await res.json();
-			if (data.id != callInput.value) {
-				// got connected to someone else even though there was no one before
-				callInput.value = data.id;
-				remoteUser.set(data.user);
-				console.log('Handling answer?');
-				await handleAnswer();
-			} else {
-				$currentStatus = 'Finding someone...';
-			}
-		} else {
-			res = await fetch('/api/calls', {
-				method: 'POST',
-				body: JSON.stringify({ id: data.id, user: $user }),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-			data = await res.json();
-			callInput.value = data.id;
-			remoteUser.set(data.user);
-			console.log('Handling answer?');
-			await handleAnswer();
-		}
+		$socket?.emit('looking-for-somebody', $user);
+
+		// let res = await fetch('/api/calls', {
+		// 	method: 'GET'
+		// });
+		// let data = await res.json();
+		// console.log(data);
+		// if (!data.id) {
+		// 	await handleCall();
+		// 	res = await fetch('/api/calls', {
+		// 		method: 'POST',
+		// 		credentials: 'same-origin',
+		// 		body: JSON.stringify({ id: callInput.value, user: $user }),
+		// 		headers: {
+		// 			'Content-Type': 'application/json'
+		// 		}
+		// 	});
+		// 	// TODO: perm fix, rn temp fix
+		// 	data = await res.json();
+		// 	if (data.id != callInput.value) {
+		// 		// got connected to someone else even though there was no one before
+		// 		callInput.value = data.id;
+		// 		remoteUser.set(data.user);
+		// 		console.log('Handling answer?');
+		// 		await handleAnswer();
+		// 	} else {
+		// 		$currentStatus = 'Finding someone...';
+		// 	}
+		// } else {
+		// 	res = await fetch('/api/calls', {
+		// 		method: 'POST',
+		// 		body: JSON.stringify({ id: data.id, user: $user }),
+		// 		headers: {
+		// 			'Content-Type': 'application/json'
+		// 		}
+		// 	});
+		// 	data = await res.json();
+		// 	callInput.value = data.id;
+		// 	remoteUser.set(data.user);
+		// 	console.log('Handling answer?');
+		// 	await handleAnswer();
+		// }
 	};
 
 	const handleCall = async () => {
@@ -209,7 +223,7 @@
 			type: offerDescription.type
 		};
 
-		$socket?.emit('make-offer', { callId, offer });
+		$socket?.emit('make-offer', { callId, offer, user: $user });
 
 		// Get candidates for caller, save to db
 		peerConnection.onicecandidate = async (event) => {
