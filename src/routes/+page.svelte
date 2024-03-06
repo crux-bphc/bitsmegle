@@ -18,6 +18,17 @@
 	let peerConnection: RTCPeerConnection;
 	import { goto } from '$app/navigation';
 
+	let running = true;
+
+	const start = async () => {
+		// Start button wont work
+		running = true;
+		const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+		localStream.set(stream);
+		console.log(stream);
+		await initiateWebRTC();
+	};
+
 	onMount(async () => {
 		const userData = parseCookie(document.cookie).user;
 		if (userData) {
@@ -33,9 +44,8 @@
 		} else {
 			return goto('/signup');
 		}
-		const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-		localStream.set(stream);
-		await initiateWebRTC();
+
+		await start();
 
 		// Listen for remote answer
 		$socket?.on('answer-made', async (data) => {
@@ -233,10 +243,9 @@
 		// localStream.getTracks().forEach((track) => track.stop());
 	};
 
-	let running = true;
 	const closeEverything = async () => {
 		$localStream?.getTracks().forEach((track) => track.stop());
-		$currentStatus = 'Idle, stopped';
+		$currentStatus = 'Stopped, please refresh to start again';
 		running = false;
 		await endWebRTC();
 	};
@@ -261,15 +270,17 @@
 					disabled
 					hidden
 				/>
-				<button
-					class="bg-indigo-500 text-white py-2 px-4 rounded-md text-md"
-					disabled={$currentStatus[0] == 'F'}
-					on:click={handleConnect}>{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
-				>
-				<button
-					class="bg-rose-500 text-white py-2 px-4 rounded-md text-md"
-					on:click={closeEverything}>End</button
-				>
+				{#if running}
+					<button
+						class="bg-indigo-600 text-white py-2 px-4 rounded-md text-md"
+						disabled={$currentStatus[0] == 'F'}
+						on:click={handleConnect}>{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
+					>
+					<button
+						class="bg-rose-600 text-white py-2 px-4 rounded-md text-md"
+						on:click={running ? closeEverything : start}>{running ? 'End' : 'Start'}</button
+					>
+				{/if}
 			</div>
 		</div>
 
@@ -285,16 +296,18 @@
 				<span>{$currentStatus}</span>
 			</div>
 
-			<button
-				class="bg-indigo-600 text-white p-2 rounded-lg text-md my-auto ml-4 disabled:opacity-50"
-				on:click={handleConnect}
-				disabled={$currentStatus[0] == 'F' && running}
-				>{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
-			>
-			<button
-				class="bg-rose-600 text-white py-2 px-4 rounded-md text-md my-auto ml-4"
-				on:click={closeEverything}>End</button
-			>
+			{#if running}
+				<button
+					class="bg-indigo-600 text-white p-2 rounded-lg text-md my-auto ml-4 disabled:opacity-50"
+					on:click={handleConnect}
+					disabled={$currentStatus[0] == 'F' && running}
+					>{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
+				>
+				<button
+					class="bg-rose-600 text-white py-2 px-4 rounded-md text-md my-auto ml-4"
+					on:click={running ? closeEverything : start}>{running ? 'End' : 'Start'}</button
+				>
+			{/if}
 		</section>
 	{/if}
 {/if}
