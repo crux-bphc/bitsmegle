@@ -3,7 +3,7 @@ export default {
 	content: ['./src/**/*.{html,js,svelte,ts}'],
 	theme: {
 		fontFamily: {
-			cursive: ['Tangerine', 'cursive']
+			cursive: ['Sacramento', 'cursive']
 		},
 		extend: {}
 	},

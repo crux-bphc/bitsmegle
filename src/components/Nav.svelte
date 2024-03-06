@@ -36,7 +36,13 @@
 
 	onMount(() => {
 		if ($socket === null) {
-			socket.set(io());
+			socket.set(
+				io('https://88ae-103-177-232-33.ngrok-free.app', {
+					extraHeaders: {
+						'ngrok-skip-browser-warning': '1'
+					}
+				})
+			);
 
 			$socket?.on('eventFromServer', (message) => {
 				console.log(message);
@@ -57,8 +63,8 @@
 <nav class="flex flex-row items-center justify-between w-full h-[7%] lg:h-[12%] px-5">
 	<div class="h-full flex items-center justify-center">
 		<img class="h-[50%] mr-3" src="favicon.png" alt="Logo" />
-		<h1 class="text-white text-2xl pt-1 lg:pt-2 lg:text-5xl lg:pb-2 font-semibold">
-			<span class="font-semibold">BITS</span><span class="font-cursive">megle</span>
+		<h1 class="text-white text-2xl pt-1 lg:pt-2 lg:text-5xl lg:pb-2">
+			<span class="font-semibold font-sans">BITS</span><span class="font-cursive">megle</span>
 		</h1>
 	</div>
 	<div class="h-full flex flex-row items-center justify-between">
