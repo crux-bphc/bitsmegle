@@ -26,6 +26,8 @@ io.on('connection', (socket) => {
 	socket.on('disconnect', () => {
 		console.log('User disconnected');
 		userCount -= 1;
+		// remove calls that are not paired (stale)
+		calls = calls.filter((call) => !call.paired && call.offerMaker !== socket);
 		io.sockets.emit('userCountChange', userCount);
 	});
 
@@ -37,19 +39,18 @@ io.on('connection', (socket) => {
 		);
 
 		if (call) {
-			console.log('Call found', call.callId);
 			console.log(data.name, 'is paired with', call.offerMakerUser.name);
 			call.paired = true;
 			call.answerMakerUser = data;
 			socket.emit('call-found', call.callId);
 		} else {
-			console.log('Call not found');
+			console.log('Found no one to pair with', data.name, 'at the moment');
 			socket.emit('call-not-found', null);
 		}
 	});
 
 	socket.on('make-offer', (data) => {
-		console.log('Offer Made');
+		// console.log('Offer Made');
 
 		calls.push({
 			callId: data.callId,
@@ -75,7 +76,7 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('make-answer', (data) => {
-		console.log(' Answer Made');
+		// console.log(' Answer Made');
 		let call = calls.find((call) => call.callId === data.callId);
 		if (call) {
 			call.answer = data.answer;
