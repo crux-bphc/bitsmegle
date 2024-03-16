@@ -80,12 +80,14 @@
 			<i class="fas fa-user text-sm"></i> <span>{currentOnlineCount}</span>
 		</div>
 		{#if $user}
-			<img
-				class="h-[60%] lg:h-[50%] rounded-full overflow-hidden"
-				src={$user?.picture ||
-					'https://static.vecteezy.com/system/resources/previews/019/879/186/original/user-icon-on-transparent-background-free-png.png'}
-				alt="Profile"
-			/>
+			<a class="h-[60%] lg:h-[50%]" href="/profile/{$user.name}">
+				<img
+					class="h-full rounded-full overflow-hidden"
+					src={$user?.picture ||
+						'https://static.vecteezy.com/system/resources/previews/019/879/186/original/user-icon-on-transparent-background-free-png.png'}
+					alt="Profile"
+				/></a
+			>
 		{/if}
 	</div>
 </nav>
