@@ -4,6 +4,7 @@
 	import { socket } from '$lib/stores/socketStore';
 	import { io } from 'socket.io-client';
 	import logo from '$lib/assets/logo.png';
+	import { goto } from '$app/navigation';
 
 	$: currentOnlineCount = 1;
 	const parseCookie = (cookieString: string): Record<string, string> => {
@@ -38,7 +39,7 @@
 	onMount(() => {
 		if ($socket === null) {
 			socket.set(
-				io('https://88ae-103-177-232-33.ngrok-free.app', {
+				io('https://e6af-14-98-244-193.ngrok-free.app', {
 					extraHeaders: {
 						'ngrok-skip-browser-warning': '1'
 					}
@@ -62,13 +63,19 @@
 </script>
 
 <nav class="flex flex-row items-center justify-between w-full h-[7%] lg:h-[12%] px-5">
-	<div class="h-full flex items-center justify-center">
+	<button class="h-full flex items-center justify-center" on:click={() => goto('/')}>
 		<img class="h-[50%] mr-3" src={logo} alt="Logo" />
 		<h1 class="text-white text-2xl pt-1 lg:pt-2 lg:text-5xl lg:pb-2">
 			<span class="font-semibold font-sans">BITS</span><span class="font-cursive">megle</span>
 		</h1>
-	</div>
+	</button>
+
 	<div class="h-full flex flex-row items-center justify-between">
+		<button class="py-1 px-2.5 bg-gray-900 text-gray-500 rounded-lg mr-4">
+			<a href="/leaderboard">
+				<i class="fas fa-ranking-star text-md"></i>
+			</a>
+		</button>
 		<div class="py-1 px-2.5 bg-emerald-900 text-emerald-400 rounded-lg mr-4">
 			<i class="fas fa-user text-sm"></i> <span>{currentOnlineCount}</span>
 		</div>
