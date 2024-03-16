@@ -6,7 +6,8 @@ export function load({ params }) {
 		return {
 			name: params.slug,
 			profile: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=' + params.slug,
-			email: 'f20230000@goa.bits-pilani.ac.in'
+			email: 'f20230000@goa.bits-pilani.ac.in',
+			reputation: Math.floor(Math.random() * 100)
 		};
 	}
 
