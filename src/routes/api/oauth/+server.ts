@@ -23,7 +23,7 @@ export const GET = async ({ url }) => {
 		const userData = JSON.stringify(user);
 
 		// Serialize your user data or a session token into a cookie
-		const serializedCookie = cookie.serialize('user', JSON.stringify(userData), {
+		const serializedCookie = cookie.serialize('user', userData, {
 			httpOnly: false,
 			maxAge: 60 * 60 * 24 * 7, // 1 week
 			path: '/',
