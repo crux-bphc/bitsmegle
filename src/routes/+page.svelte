@@ -13,7 +13,7 @@
 	import { currentStatus } from '$lib/stores/statusStore';
 	$currentStatus = 'Idle';
 
-	let callInput: HTMLInputElement;
+	let currentCallId: string = '';
 
 	let peerConnection: RTCPeerConnection;
 	import { goto } from '$app/navigation';
@@ -83,7 +83,7 @@
 		});
 
 		$socket?.on('call-found', async (data) => {
-			callInput.value = data;
+			currentCallId = data;
 			console.log('Handling answer...');
 			await handleAnswer();
 		});
@@ -141,7 +141,7 @@
 				console.log('Track removed');
 			};
 
-			$socket?.emit('who-is-remote', { callId: callInput.value });
+			$socket?.emit('who-is-remote', { callId: currentCallId });
 
 			$currentStatus = 'Connected';
 		};
@@ -177,16 +177,16 @@
 		// 	res = await fetch('/api/calls', {
 		// 		method: 'POST',
 		// 		credentials: 'same-origin',
-		// 		body: JSON.stringify({ id: callInput.value, user: $user }),
+		// 		body: JSON.stringify({ id: currentCallId, user: $user }),
 		// 		headers: {
 		// 			'Content-Type': 'application/json'
 		// 		}
 		// 	});
 		// 	// TODO: perm fix, rn temp fix
 		// 	data = await res.json();
-		// 	if (data.id != callInput.value) {
+		// 	if (data.id != currentCallId) {
 		// 		// got connected to someone else even though there was no one before
-		// 		callInput.value = data.id;
+		// 		currentCallId = data.id;
 		// 		remoteUser.set(data.user);
 		// 		console.log('Handling answer?');
 		// 		await handleAnswer();
@@ -202,7 +202,7 @@
 		// 		}
 		// 	});
 		// 	data = await res.json();
-		// 	callInput.value = data.id;
+		// 	currentCallId = data.id;
 		// 	remoteUser.set(data.user);
 		// 	console.log('Handling answer?');
 		// 	await handleAnswer();
@@ -212,7 +212,7 @@
 	const handleCall = async () => {
 		const callId = crypto.randomUUID();
 
-		callInput.value = callId;
+		currentCallId = callId;
 		// Create offer
 
 		const offerDescription = await peerConnection.createOffer();
@@ -234,7 +234,7 @@
 	};
 
 	const handleAnswer = async () => {
-		const callId = callInput.value;
+		const callId = currentCallId;
 		console.log(callId);
 
 		peerConnection.onicecandidate = async (event) => {
@@ -277,13 +277,6 @@
 				<div class="text-white bg-gray-800 rounded-lg px-4 py-2">
 					Status: {$currentStatus}
 				</div>
-				<input
-					class="px-4 py-2 bg-gray-800 text-white rounded-lg"
-					bind:this={callInput}
-					placeholder="Call ID"
-					disabled
-					hidden
-				/>
 				{#if running}
 					<button
 						class="bg-indigo-600 text-white py-2 px-4 rounded-md text-md"
