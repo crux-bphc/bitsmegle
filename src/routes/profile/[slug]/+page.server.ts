@@ -1,15 +1,13 @@
 import { error } from '@sveltejs/kit';
+import { users } from '../../../db/users.ts';
+import type { PageServerLoad } from './$types.js';
 
 /** @type {import('./$types').PageServerLoad} */
-export function load({ params }) {
-	if (true) {
-		return {
-			name: params.slug,
-			profile: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=' + params.slug,
-			email: 'f20230000@goa.bits-pilani.ac.in',
-			reputation: Math.floor(Math.random() * 100)
-		};
+export const load: PageServerLoad = async ({ params }) => {
+	const user = await users.findOne({ name: params.slug });
+	if (user) {
+		return { ...user, _id: user._id.toString() };
 	}
 
-	error(404, 'Not found');
-}
+	error(404, 'Profile Not found');
+};
