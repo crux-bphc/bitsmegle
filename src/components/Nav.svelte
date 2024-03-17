@@ -45,7 +45,7 @@
 	onMount(() => {
 		if ($socket === null) {
 			socket.set(
-				io('https://e6af-14-98-244-193.ngrok-free.app', {
+				io('https://f0e5-14-98-244-193.ngrok-free.app', {
 					extraHeaders: {
 						'ngrok-skip-browser-warning': '1'
 					}
