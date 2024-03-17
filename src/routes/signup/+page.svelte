@@ -29,8 +29,8 @@
 				By signing up on this platform,
 				<br />
 				you agree to our
-				<a href="/terms" class="text-blue-600">Terms and Conditions </a>and
-				<a href="/privacy" class="text-blue-600">Privacy Policy</a>.
+				<a href="/terms" class="text-blue-600 hover:text-blue-400">Terms and Conditions </a>and
+				<a href="/privacy" class="text-blue-600 hover:text-blue-400">Privacy Policy</a>.
 			</p>
 		</div>
 	</div>
