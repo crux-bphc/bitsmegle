@@ -1,6 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import logo from '$lib/assets/logo.png';
+	import Particles from '../components/Particles.svelte';
 
 	let countdown = '';
 	let timerInterval;
@@ -27,7 +28,8 @@
 	});
 </script>
 
-<div class="flex flex-col justify-center items-center h-full">
+<Particles />
+<div class="flex flex-col justify-center items-center h-full z-50">
 	<div class="flex flex-col justify-center items-center">
 		<div class="h-full flex items-center justify-center">
 			<img class="h-16 mr-3" src={logo} alt="Logo" />
