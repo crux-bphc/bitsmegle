@@ -1,6 +1,5 @@
 <script>
 	import { page } from '$app/stores';
-	import logo from '../lib/assets/logo.png';
 	console.log($page.error?.message);
 </script>
 

@@ -6,7 +6,7 @@
 	<div class="bg-slate-900 p-6 rounded-xl text-white text-center">
 		<div class="flex flex-row items-center justify-center mb-6">
 			<img class="h-12 mr-3" src={logo} alt="Logo" />
-			<h1 class="text-white text-2xl pt-1 lg:pt-2 lg:text-5xl lg:pb-2">
+			<h1 class="text-white pt-2 text-5xl pb-2">
 				<span class="font-semibold font-sans">BITS</span><span class="font-cursive">megle</span>
 			</h1>
 		</div>
