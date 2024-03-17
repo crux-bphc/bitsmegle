@@ -26,8 +26,7 @@
 			},
 			modes: {
 				repulse: {
-					distance: 100,
-					duration: 0.4
+					distance: 100
 				}
 			}
 		},
