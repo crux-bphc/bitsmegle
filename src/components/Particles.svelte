@@ -5,6 +5,7 @@
 	import { loadSlim } from '@tsparticles/slim'; // if you are going to use `loadSlim`, install the "@tsparticles/slim" package too.
 
 	let ParticlesComponent;
+	export let loaded;
 
 	onMount(async () => {
 		const module = await import('@tsparticles/svelte');
@@ -53,7 +54,7 @@
 
 	let onParticlesLoaded = (event) => {
 		const particlesContainer = event.detail.particles;
-
+		loaded.set(true);
 		// you can use particlesContainer to call all the Container class
 		// (from the core library) methods like play, pause, refresh, start, stop
 	};

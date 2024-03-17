@@ -1,4 +1,12 @@
-<div class="flex w-full h-full items-center justify-center bg-slate-900 animate-none">
+<script>
+	export let color = 'light';
+</script>
+
+<div
+	class="flex w-full h-full items-center justify-center {color === 'light'
+		? 'bg-slate-900'
+		: 'bg-slate-950'} animate-none"
+>
 	<div class="loader">
 		<svg viewBox="0 0 80 80">
 			<circle id="test" cx="40" cy="40" r="32"></circle>
