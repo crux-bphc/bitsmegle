@@ -12,7 +12,7 @@ const server = createServer(app);
 
 const io = new Server(server, {
 	cors: {
-		origin: ['https://bitsmegle.vercel.app', 'http://localhost:5173']
+		origin: ['https://bitsmegle.live', 'https://bitsmegle.vercel.app', 'http://localhost:5173']
 	}
 });
 

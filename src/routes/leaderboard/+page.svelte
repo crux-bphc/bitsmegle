@@ -23,10 +23,11 @@
 		}
 	};
 
-	let leaderboardData: any = [];
-	onMount(async () => {
-		leaderboardData = await fetchRandomUsers(5); // Fetching 5 random users
-	});
+	export let data;
+	let leaderboardData: any = data.data;
+	// onMount(async () => {
+	// 	leaderboardData = await fetchRandomUsers(5); // Fetching 5 random users
+	// });
 </script>
 
 <div class="container mx-auto max-w-[50%] m-6 flex justify-center items-center">
@@ -43,12 +44,12 @@
 				</div>
 			</div>
 			{#each leaderboardData as user, i}
-				<a href="/profile/{user.id}">
+				<a href="/profile/{user._id}">
 					<div class="flex flex-row justify-between leaderboard-row rounded p-2">
 						<div class="flex flex-row">
 							<div class="w-12">{i + 1}</div>
 							<div class="w-12">
-								<img class="w-8 h-8 rounded-full" src={user.pfp} alt="Profile picture" />
+								<img class="w-8 h-8 rounded-full" src={user.profile} alt="Profile" />
 							</div>
 							<div class="w-24 font-semibold">{user.name}</div>
 						</div>
