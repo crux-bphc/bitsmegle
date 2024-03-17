@@ -19,6 +19,11 @@
 		return cookies;
 	};
 
+	// email to id
+	const emailToId = (email: string) => {
+		return email.split('@')[0] + email.split('@')[1][0];
+	};
+
 	// const setCurrentOnlineCount = () => {
 	// 	fetch('api/users')
 	// 		.then((res) => res.json())
@@ -88,7 +93,7 @@
 			<i class="fas fa-user text-sm"></i> <span>{currentOnlineCount}</span>
 		</div>
 		{#if $user}
-			<a class="h-[60%] lg:h-[50%]" href="/profile/{$user.name}">
+			<a class="h-[60%] lg:h-[50%]" href="/profile/{emailToId($user.email)}">
 				<img
 					class="h-full rounded-full overflow-hidden"
 					src={$user?.picture ||

@@ -44,12 +44,12 @@
 				</div>
 			</div>
 			{#each leaderboardData as user, i}
-				<a href="/profile/{user._id}">
+				<a href="/profile/{user.id}">
 					<div class="flex flex-row justify-between leaderboard-row rounded p-2">
 						<div class="flex flex-row">
 							<div class="w-12">{i + 1}</div>
 							<div class="w-12">
-								<img class="w-8 h-8 rounded-full" src={user.profile} alt="Profile" />
+								<img class="w-8 h-8 rounded-full" src={user.picture} alt="Profile" />
 							</div>
 							<div class="w-24 font-semibold">{user.name}</div>
 						</div>
