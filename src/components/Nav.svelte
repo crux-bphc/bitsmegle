@@ -77,7 +77,9 @@
 	</button>
 
 	<div class="h-full flex flex-row items-center justify-between">
-		<button class="py-1 px-2.5 bg-gray-900 text-gray-500 rounded-lg mr-4">
+		<button
+			class="py-1 px-2.5 bg-gray-900 hover:bg-gray-500 text-gray-500 hover:text-gray-900 rounded-lg mr-4"
+		>
 			<a href="/leaderboard">
 				<i class="fas fa-ranking-star text-md"></i>
 			</a>
