@@ -6,6 +6,7 @@
 
 	import Video from '../../components/Video.svelte';
 	import Chat from '../../components/Chat.svelte';
+	import Rate from '../../components/Rate.svelte';
 
 	import { localStream, remoteStream } from '$lib/stores/streamStore';
 	import MobileChat from '../../components/MobileChat.svelte';
@@ -17,8 +18,10 @@
 
 	let peerConnection: RTCPeerConnection;
 	import { goto } from '$app/navigation';
+	import { writable } from 'svelte/store';
 
 	let running = true;
+	let rating = writable(false);
 
 	const start = async () => {
 		// Start button wont work
@@ -161,10 +164,12 @@
 
 	const handleConnect = async () => {
 		if ($currentStatus[0] === 'C') {
+			$currentStatus = 'Idle';
 			await endWebRTC();
+			console.log('Ended WebRTC');
 			await initiateWebRTC();
 		}
-
+		console.log('Looking for somebody...');
 		$socket?.emit('looking-for-somebody', $user);
 
 		// let res = await fetch('/api/calls', {
@@ -246,11 +251,35 @@
 		$socket?.emit('call-accepted', { callId });
 	};
 
-	const endWebRTC = async () => {
-		// Close WebRTC connection and WebSocket connection
-		remoteUser.set(null);
-		remoteStream.set(null);
+	const handleRating = () => {
+		$rating = false;
+	};
+
+	const endWebRTC = async (rate: boolean = true) => {
 		await peerConnection.close();
+
+		if (rate) {
+			// ask for rating
+			$rating = true;
+			await new Promise<void>((resolve) => {
+				const unsubscribe = rating.subscribe((value) => {
+					console.log('rating done', !value);
+					if (!value) {
+						unsubscribe();
+						resolve();
+					}
+				});
+			});
+			console.log('rating done really');
+		}
+
+		// Close WebRTC connection and WebSocket connection
+		setTimeout(() => {
+			remoteStream.set(null);
+
+			remoteUser.set(null);
+		}, 1000);
+
 		// RTCDataChannel.close()
 
 		// Stop local media stream
@@ -261,14 +290,18 @@
 		$localStream?.getTracks().forEach((track) => track.stop());
 		$currentStatus = 'Stopped, please refresh to start again';
 		running = false;
-		await endWebRTC();
+		await endWebRTC(false);
 	};
 </script>
 
 {#if $user}
 	<section class="h-[85%] lg:h-[75%] flex flex-col lg:flex-row items-center justify-evenly">
 		<Video who="you" />
-		<Video who="them" />
+		{#if $rating}
+			<Rate on:interaction={handleRating} />
+		{:else}
+			<Video who="them" />
+		{/if}
 	</section>
 
 	<section class="hidden h-[13%] md:flex sm:flex-col md:flex-row items-center justify-evenly">

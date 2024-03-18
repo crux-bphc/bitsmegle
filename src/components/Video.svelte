@@ -10,17 +10,17 @@
 	$: status = $currentStatus;
 	$: currentUser = who === 'you' ? user : remoteUser;
 	let storeStream = who === 'you' ? localStream : remoteStream;
-	let videoElement: HTMLVideoElement;
-	let nameplate: HTMLDivElement;
+	let videoElement: HTMLVideoElement | null;
+	let nameplate: HTMLDivElement | null;
 
 	const hideNameplateLater = () => {
 		setTimeout(() => {
-			nameplate.classList.add('hidden');
+			if (nameplate) nameplate.classList.add('hidden');
 		}, 10000);
 	};
 
 	const handleNameplateClick = () => {
-		nameplate.classList.remove('hidden');
+		if (nameplate) nameplate.classList.remove('hidden');
 		hideNameplateLater();
 	};
 	onMount(() => {
@@ -29,14 +29,14 @@
 		storeStream.subscribe((stream: MediaStream | null) => {
 			console.log(stream);
 
-			videoElement.srcObject = stream;
+			if (videoElement) videoElement.srcObject = stream;
 		});
 
 		currentUser.subscribe((user) => {
 			if (user) {
-				videoElement.classList.remove('hidden');
+				videoElement?.classList.remove('hidden');
 			} else {
-				videoElement.classList.add('hidden');
+				videoElement?.classList.add('hidden');
 			}
 		});
 	});
