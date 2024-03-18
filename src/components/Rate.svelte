@@ -2,9 +2,16 @@
 	import { createEventDispatcher } from 'svelte';
 	const dispatch = createEventDispatcher();
 
-	export let user: any = {
-		id: 'swas',
-		name: 'Swas.py'
+	import { remoteUser } from '$lib/stores/userStore';
+
+	$: user = remoteUser;
+
+	const getIdFromEmail = (email: string) => {
+		// convert email in the format f20230043@hyderabad.bits-pilani.ac.in to 'f20230043h'
+		const id = email.split('@')[0];
+		const idParts = email.split('@')[1].split('.');
+		const campus = idParts[0];
+		return id + campus[0];
 	};
 
 	const updateUser = async (action: 'like' | 'dislike') => {
@@ -15,7 +22,7 @@
 			},
 			body: JSON.stringify({
 				action,
-				targetId: user.id
+				targetId: getIdFromEmail($user?.email)
 			})
 		});
 		if (!response.ok) {
@@ -39,7 +46,7 @@
 <div class="relative h-[45%] w-[90%] lg:h-[90%] lg:w-[48%] rounded-3xl overflow-hidden">
 	<div class="flex w-full h-full items-center justify-center bg-gray-900">
 		<div class="flex flex-col text-center">
-			<div class="text-2xl text-white font-semibold mb-4">Rate {user.name}</div>
+			<div class="text-2xl text-white font-semibold mb-4">Rate {$user?.name}</div>
 			<div class="flex justify-center">
 				<button
 					class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md text-md mr-4 focus:outline-none"
