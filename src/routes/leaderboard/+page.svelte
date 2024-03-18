@@ -1,6 +1,7 @@
 <!-- LeaderboardPage.svelte -->
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { user } from '$lib/stores/userStore';
+import { onMount } from 'svelte';
 
 	// Function to fetch random users from the API
 	const fetchRandomUsers = async (count: number) => {
@@ -35,30 +36,62 @@
 		<div class="text-xl mb-3 p-2 font-bold">Leaderboard</div>
 
 		<hr />
-		<div class="flex flex-col mt-3">
-			<div class="flex flex-row justify-between">
-				<div class="flex flex-row text-gray-500 p-2">
-					<div class="w-24">Rank</div>
-					<div class="w-60">User</div>
-					<div class="w-12">Reputation</div>
-				</div>
-			</div>
-			{#each leaderboardData as user, i}
-				<a href="/profile/{user.id}">
-					<div class="flex flex-row justify-between leaderboard-row rounded p-2">
-						<div class="flex flex-row">
-							<div class="w-12">{i + 1}</div>
-							<div class="w-12">
-								<img class="w-8 h-8 rounded-full" src={user.picture} alt="Profile" />
-							</div>
-							<div class="w-24 font-semibold">{user.name}</div>
+
+		<table class="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-600">
+			<thead class="bg-gray-100 dark:bg-gray-700">
+				<tr>
+					<th
+						scope="col"
+						class="p-4 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400"
+						>No.</th
+					>
+					<th
+						scope="col"
+						class="p-4 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400"
+						>Name</th
+					>
+					<th
+						scope="col"
+						class="p-4 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400"
+					></th>
+					<th
+						scope="col"
+						class="p-4 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400"
+						>Reputation</th
+					>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+				{#each leaderboardData as user, i}
+				<tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+					<td
+						class="bg-slate whitespace-nowrap p-4 font-mono text-sm font-medium text-gray-900 dark:text-slate-500"
+						>{i+1}</td
+					>
+					<td class="mr-12 flex items-center space-x-6 whitespace-nowrap p-4">
+						<a href="/profile/{user.id}">
+							<img
+								class="w-10 rounded-full object-cover object-right"
+								src={user.picture}
+								alt=""
+							/>
+						</a>
+						<div class="text-sm font-normal text-gray-500 dark:text-gray-400">
+							<div class="text-base font-semibold text-gray-900 dark:text-white">{user.name}</div>
 						</div>
-						<div class="w-32 text-left">{user.reputation}</div>
-						<!-- Increased width and added text-left class -->
-					</div>
-				</a>
-			{/each}
-		</div>
+					</td>
+					<td class="space-x-2 whitespace-nowrap">
+						<img
+							class="w-4 rounded-full object-cover object-right"
+							src="https://i.imgur.com/1XYOJHg.png"
+							alt=""
+						/>
+					</td>
+					<td class="space-x-2 whitespace-nowrap p-4 text-white">{user.reputation}</td>
+				</tr>
+				{/each}
+			</tbody>
+		</table>
 	</div>
 </div>
 
