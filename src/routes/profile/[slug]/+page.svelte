@@ -9,32 +9,27 @@
 	<div>
 		<!-- Card start -->
 		<div
-			class="p-4 max-w-sm mx-auto bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-lg"
+			class="relative flex flex-col text-gray-700 bg-slate-700 shadow-md bg-clip-border rounded-xl w-96"
 		>
-			<div class="border-b px-4 pb-6">
-				<div class="text-center mt-4">
-					<img
-						class="h-32 w-32 rounded-full border-4 border-gray-200 dark:border-gray-800 mx-auto my-4"
-						src={data.picture}
-						alt="Profile"
-					/>
-					<div class="pt-2">
-						<h3 class="font-bold text-2xl text-gray-800 dark:text-white mb-1">{data.name}</h3>
-					</div>
-				</div>
+			<div
+				class="relative mx-4 mt-4 overflow-hidden border border-purple-400 bg-white bg-clip-border rounded-xl h-80"
+			>
+				<img src={data.picture} alt="" />
 			</div>
-			<div class="px-4 py-4">
-				<div class="flex gap-2 items-center text-gray-800 dark:text-gray-300 mb-4">
-					<i class="text-yellow-500 fas fa-star"></i><!-- Using yellow color for stars -->
-					<span><strong>{data.reputation}</strong></span>
-				</div>
-				<div class="inline-flex text-gray-700 dark:text-gray-300 items-center">
-					<i class="h-5 w-5 text-gray-400 dark:text-gray-600 mr-1 mt-2 fas fa-envelope"></i>
-					{data.email}
-				</div>
-				<!-- Removed unnecessary div -->
+			<div class="p-6 text-center">
+				<h4
+					class="block mb-2 font-sans text-2xl font-semibold leading-snug tracking-normal text-white"
+				>
+					{data.name}
+				</h4>
+				<p class="block font-sans font-medium leading-relaxed text-gray-400">{data.email}</p>
+			</div>
+			<div class="flex justify-center items-center p-6 pb-6 gap-2">
+				<img class="w-4 h-4" src="https://i.imgur.com/1XYOJHg.png" alt="" />
+				<span class="text-white text-2xl">{data.reputation}</span>
 			</div>
 		</div>
+		
 		<!-- Card end -->
 	</div>
 </div>

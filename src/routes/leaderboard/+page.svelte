@@ -31,11 +31,9 @@ import { onMount } from 'svelte';
 	// });
 </script>
 
-<div class="container mx-auto max-w-[50%] m-6 flex justify-center items-center">
+<div class="container mx-auto m-6 flex justify-center items-center">
 	<div class="text-white rounded bg-slate-900 w-full h-full p-6">
-		<div class="text-xl mb-3 p-2 font-bold">Leaderboard</div>
-
-		<hr />
+		<div class="text-xl mb-8 p-2 font-bold">Leaderboard</div>
 
 		<table class="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-600">
 			<thead class="bg-gray-100 dark:bg-gray-700">
