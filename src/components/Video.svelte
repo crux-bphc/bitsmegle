@@ -42,7 +42,7 @@
 	});
 </script>
 
-<div class="relative h-[45%] w-[90%] lg:h-[90%] lg:w-[48%] rounded-3xl overflow-hidden">
+<div class="relative h-[45%] w-[90%] land:h-[85%] land:w-[48%] lg:h-[90%] lg:w-[48%] rounded-3xl overflow-hidden">
 	<div
 		class="backdrop-blur-sm absolute flex flex-col rounded-lg left-0 bottom-0 z-10 m-3 px-3 py-2"
 		bind:this={nameplate}

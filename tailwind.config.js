@@ -5,7 +5,11 @@ export default {
 		fontFamily: {
 			cursive: ['Sacramento', 'cursive']
 		},
-		extend: {}
+		extend: {
+			screens: {
+				'land': {'raw': '(orientation: landscape)'}
+			}
+		}
 	},
 	plugins: []
 };
