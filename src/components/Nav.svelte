@@ -69,13 +69,13 @@
 </script>
 
 <nav
-	class="land:mt-5 flex flex-row items-center justify-between w-full h-[7%] lg:h-[12%] px-5 {$page.route
+	class=" flex flex-row items-center justify-between w-full h-[7%] lg:h-[12%] px-5 {$page.route
 		.id === '/'
 		? 'hidden'
 		: ''}"
 >
 	<button class="h-full flex items-center justify-center" on:click={() => goto('/')}>
-		<img class="h-[50%] land:h-full mr-3" src={logo} alt="Logo" />
+		<img class="h-[50%] mr-3" src={logo} alt="Logo" />
 		<h1 class="text-white text-2xl pt-1 lg:pt-2 lg:text-5xl lg:pb-2">
 			<span class="font-semibold font-sans">BITS</span><span class="font-cursive">megle</span>
 		</h1>

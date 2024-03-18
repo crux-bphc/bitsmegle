@@ -33,7 +33,11 @@
 	</head>
 	<body class="bg-slate-950 overflow-y-hidden" data-sveltekit-preload-data="hover">
 		<div style="display: contents">
-			<div class="h-[calc(100vh-4rem)] land:h-[100vh] land:pb-10 overflow-y-scroll md:h-screen w-full">%sveltekit.body%</div>
+			<div
+				class="h-[calc(100vh-4rem)] land:h-[100vh] land:pb-10 overflow-y-auto md:h-screen w-full"
+			>
+				%sveltekit.body%
+			</div>
 		</div>
 	</body>
 </html>
