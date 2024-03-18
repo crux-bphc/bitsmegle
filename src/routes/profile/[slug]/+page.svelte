@@ -8,28 +8,20 @@
 >
 	<div>
 		<!-- Card start -->
-		<div
-			class="relative flex flex-col text-gray-700 bg-slate-700 shadow-md bg-clip-border rounded-xl w-96"
-		>
-			<div
-				class="relative mx-4 mt-4 overflow-hidden border border-purple-400 bg-white bg-clip-border rounded-xl h-80"
-			>
-				<img src={data.picture} alt="" />
-			</div>
-			<div class="p-6 text-center"> 
-				<h4
-					class="block mb-2 font-sans text-2xl font-semibold leading-snug tracking-normal text-white"
-				>
-					{data.name}
-				</h4>
-				<p class="block font-sans font-medium leading-relaxed text-gray-400">{data.email}</p>
-			</div>
-			<div class="flex justify-center items-center p-6 pb-6 gap-2">
-				<img class="w-4 h-4" src="https://i.imgur.com/1XYOJHg.png" alt="" />
-				<span class="text-white text-2xl">{data.reputation}</span>
-			</div>
-		</div>
 		
+		<div class="flex flex-row items-center bg-slate-900 rounded-2xl md:p-4 p-2 mt-20 m-3">
+            <td class="mr-12 flex items-center space-x-6 whitespace-nowrap p-4 ">
+                <img src={data.picture} alt="profile" class="md:h-20 h-10 md:w-20 w-10 rounded-full" />
+                <div class="text-xl font-normal text-gray-500 dark:text-gray-400">
+                    <div class="text-sm md:text-2xl font-semibold text-gray-900 dark:text-white mb-1 md:mb-2">{data.name}</div>
+                    <div class="text-xs md:text-xl font-normal text-gray-500 dark:text-gray-400">{data.email}</div>
+                </div>
+            </td>
+            <div class="whitespace-nowrap p-4 font-medium text-white  bg-slate font-mono text-sm md:text-2xl ">
+				<i class="text-yellow-500 fas fa-star mr-2"></i>
+							<span>{data.reputation}</span>
+            </div>
+        </div>
 		<!-- Card end -->
 	</div>
 </div>
