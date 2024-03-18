@@ -42,7 +42,7 @@
 				.then((res) => res.json())
 				.then((data) => user.set(data));
 		} else {
-			return goto('/signup');
+			// return goto('/signup');
 		}
 
 		await start();
@@ -266,7 +266,7 @@
 </script>
 
 {#if $user}
-	<section class="h-[85%] lg:h-[75%] flex flex-col lg:flex-row items-center justify-evenly">
+	<section class="h-[85%] land:h-[75%] land:flex-row lg:h-[75%] flex flex-col lg:flex-row items-center justify-evenly">
 		<Video who="you" />
 		<Video who="them" />
 	</section>
