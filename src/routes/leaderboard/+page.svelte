@@ -1,7 +1,7 @@
 <!-- LeaderboardPage.svelte -->
 <script lang="ts">
 	import { user } from '$lib/stores/userStore';
-import { onMount } from 'svelte';
+	import { onMount } from 'svelte';
 
 	// Function to fetch random users from the API
 	const fetchRandomUsers = async (count: number) => {
@@ -31,62 +31,53 @@ import { onMount } from 'svelte';
 	// });
 </script>
 
-<div class="container mx-auto m-6 flex justify-center items-center">
-	<div class="text-white rounded bg-slate-900 w-full h-full p-6">
-		<div class="text-xl mb-8 p-2 font-bold">Leaderboard</div>
+<div class=" flex justify-center items-center w-full mt-10">
+	<div class="text-white rounded-3xl shadow-2xl bg-slate-900 w-[80%] md:w-[800px] h-full p-6">
+		<div class="text-3xl mb-8 mt-3 ml-4 p-2 font-bold">Leaderboard</div>
 
-		<table class="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-600">
-			<thead class="bg-gray-100 dark:bg-gray-700">
+		<table class="min-w-full table-fixed">
+			<thead class="text-gray-400">
 				<tr>
-					<th
+					<th scope="col" class="p-0 md:p-2 text-left text-[10px] md:text-xs font-medium uppercase">Rank</th>
+					<th scope="col" class="p-4 text-left text-[10px] md:text-xs font-medium uppercase">Name</th>
+					<!-- <th
 						scope="col"
 						class="p-4 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400"
-						>No.</th
-					>
-					<th
-						scope="col"
-						class="p-4 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400"
-						>Name</th
-					>
-					<th
-						scope="col"
-						class="p-4 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400"
-					></th>
-					<th
-						scope="col"
-						class="p-4 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400"
-						>Reputation</th
-					>
+					></th> -->
+					<th scope="col" class="md:hidden block p-4 text-left text-[10px] md:text-xs font-medium uppercase">Rep</th>
+					<th scope="col" class="hidden md:block p-4 text-left text-[10px] md:text-xs font-medium uppercase">Reputation</th>
 				</tr>
 			</thead>
-			<tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+			<tbody class="">
 				{#each leaderboardData as user, i}
-				<tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
-					<td
-						class="bg-slate whitespace-nowrap p-4 font-mono text-sm font-medium text-gray-900 dark:text-slate-500"
-						>{i+1}</td
-					>
-					<td class="mr-12 flex items-center space-x-6 whitespace-nowrap p-4">
-						<a href="/profile/{user.id}">
-							<img
-								class="w-10 rounded-full object-cover object-right"
-								src={user.picture}
-								alt=""
-							/>
-						</a>
-						<div class="text-sm font-normal text-gray-500 dark:text-gray-400">
-							<div class="text-base font-semibold text-gray-900 dark:text-white">{user.name}</div>
-						</div>
-					</td>
-					<td class="space-x-2 whitespace-nowrap">
-						<img
-							class="w-4 rounded-full object-cover object-right"
-							src="https://i.imgur.com/1XYOJHg.png"
-							alt=""
-						/>
-					</td>
-					<td class="space-x-2 whitespace-nowrap p-4 text-white">{user.reputation}</td>
-				</tr>
+					<tr class="hover:bg-gray-700 ">
+						<td
+							class="bg-slate whitespace-nowrap p-4 font-mono text-[10px] md:text-sm md:m font-medium text-gray-900 dark:text-slate-500"
+							>{i + 1}</td
+						>
+						<td class="flex items-center space-x-6 whitespace-nowrap p-4">
+							<a href="/profile/{user.id}">
+								<img
+									class="w-10 h-10 rounded-full object-cover object-right"
+									src={user.picture}
+									alt=""
+								/>
+							</a>
+							<div class="text-[10px] md:text-sm font-normal text-gray-500 dark:text-gray-400">
+								<a href="/profile/{user.id}">
+									<div class="md:hidden block font-semibold text-gray-900 dark:text-white">{user.name.split(" ")[0]}</div>
+									<div class="hidden md:block font-semibold text-gray-900 dark:text-white">{user.name}</div>
+								</a>
+							</div>
+						</td>
+						<!-- <td class="space-x-2 whitespace-nowrap">
+						
+					</td> -->
+						<td class="text-[10px] md:text-sm space-x-2 whitespace-nowrap p-4 text-white">
+							<i class="text-yellow-500 fas fa-star"></i>
+							<span>{user.reputation}</span></td
+						>
+					</tr>
 				{/each}
 			</tbody>
 		</table>
