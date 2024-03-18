@@ -16,7 +16,7 @@
 			>
 				<img src={data.picture} alt="" />
 			</div>
-			<div class="p-6 text-center">
+			<div class="p-6 text-center"> 
 				<h4
 					class="block mb-2 font-sans text-2xl font-semibold leading-snug tracking-normal text-white"
 				>
