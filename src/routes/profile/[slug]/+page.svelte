@@ -8,33 +8,20 @@
 >
 	<div>
 		<!-- Card start -->
-		<div
-			class="p-4 max-w-sm mx-auto bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-lg"
-		>
-			<div class="border-b px-4 pb-6">
-				<div class="text-center mt-4">
-					<img
-						class="h-32 w-32 rounded-full border-4 border-gray-200 dark:border-gray-800 mx-auto my-4"
-						src={data.picture}
-						alt="Profile"
-					/>
-					<div class="pt-2">
-						<h3 class="font-bold text-2xl text-gray-800 dark:text-white mb-1">{data.name}</h3>
-					</div>
-				</div>
-			</div>
-			<div class="px-4 py-4">
-				<div class="flex gap-2 items-center text-gray-800 dark:text-gray-300 mb-4">
-					<i class="text-yellow-500 fas fa-star"></i><!-- Using yellow color for stars -->
-					<span><strong>{data.reputation}</strong></span>
-				</div>
-				<div class="inline-flex text-gray-700 dark:text-gray-300 items-center">
-					<i class="h-5 w-5 text-gray-400 dark:text-gray-600 mr-1 mt-2 fas fa-envelope"></i>
-					{data.email}
-				</div>
-				<!-- Removed unnecessary div -->
-			</div>
-		</div>
+		
+		<div class="flex flex-row items-center bg-slate-900 rounded-2xl md:p-4 p-2 mt-20 m-3">
+            <td class="mr-12 flex items-center space-x-6 whitespace-nowrap p-4 ">
+                <img src={data.picture} alt="profile" class="md:h-20 h-10 md:w-20 w-10 rounded-full" />
+                <div class="text-xl font-normal text-gray-500 dark:text-gray-400">
+                    <div class="text-sm md:text-2xl font-semibold text-gray-900 dark:text-white mb-1 md:mb-2">{data.name}</div>
+                    <div class="text-xs md:text-xl font-normal text-gray-500 dark:text-gray-400">{data.email}</div>
+                </div>
+            </td>
+            <div class="whitespace-nowrap p-4 font-medium text-white  bg-slate font-mono text-sm md:text-2xl ">
+				<i class="text-yellow-500 fas fa-star mr-2"></i>
+							<span>{data.reputation}</span>
+            </div>
+        </div>
 		<!-- Card end -->
 	</div>
 </div>

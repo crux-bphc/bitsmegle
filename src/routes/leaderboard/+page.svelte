@@ -1,5 +1,6 @@
 <!-- LeaderboardPage.svelte -->
 <script lang="ts">
+	import { user } from '$lib/stores/userStore';
 	import { onMount } from 'svelte';
 
 	// Function to fetch random users from the API
@@ -30,35 +31,56 @@
 	// });
 </script>
 
-<div class="container mx-auto max-w-[50%] m-6 flex justify-center items-center">
-	<div class="text-white rounded bg-slate-900 w-full h-full p-6">
-		<div class="text-xl mb-3 p-2 font-bold">Leaderboard</div>
+<div class=" flex justify-center items-center w-full mt-10">
+	<div class="text-white rounded-3xl shadow-2xl bg-slate-900 w-[80%] md:w-[800px] h-full p-6">
+		<div class="text-3xl mb-8 mt-3 ml-4 p-2 font-bold">Leaderboard</div>
 
-		<hr />
-		<div class="flex flex-col mt-3">
-			<div class="flex flex-row justify-between">
-				<div class="flex flex-row text-gray-500 p-2">
-					<div class="w-24">Rank</div>
-					<div class="w-60">User</div>
-					<div class="w-12">Reputation</div>
-				</div>
-			</div>
-			{#each leaderboardData as user, i}
-				<a href="/profile/{user.id}">
-					<div class="flex flex-row justify-between leaderboard-row rounded p-2">
-						<div class="flex flex-row">
-							<div class="w-12">{i + 1}</div>
-							<div class="w-12">
-								<img class="w-8 h-8 rounded-full" src={user.picture} alt="Profile" />
+		<table class="min-w-full table-fixed">
+			<thead class="text-gray-400">
+				<tr>
+					<th scope="col" class="p-0 md:p-2 text-left text-[10px] md:text-xs font-medium uppercase">Rank</th>
+					<th scope="col" class="p-4 text-left text-[10px] md:text-xs font-medium uppercase">Name</th>
+					<!-- <th
+						scope="col"
+						class="p-4 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400"
+					></th> -->
+					<th scope="col" class="md:hidden block p-4 text-left text-[10px] md:text-xs font-medium uppercase">Rep</th>
+					<th scope="col" class="hidden md:block p-4 text-left text-[10px] md:text-xs font-medium uppercase">Reputation</th>
+				</tr>
+			</thead>
+			<tbody class="">
+				{#each leaderboardData as user, i}
+					<tr class="hover:bg-gray-700 ">
+						<td
+							class="bg-slate whitespace-nowrap p-4 font-mono text-[10px] md:text-sm md:m font-medium text-gray-900 dark:text-slate-500"
+							>{i + 1}</td
+						>
+						<td class="flex items-center space-x-6 whitespace-nowrap p-4">
+							<a href="/profile/{user.id}">
+								<img
+									class="w-10 h-10 rounded-full object-cover object-right"
+									src={user.picture}
+									alt=""
+								/>
+							</a>
+							<div class="text-[10px] md:text-sm font-normal text-gray-500 dark:text-gray-400">
+								<a href="/profile/{user.id}">
+									<div class="md:hidden block font-semibold text-gray-900 dark:text-white">{user.name.split(" ")[0]}</div>
+									<div class="hidden md:block font-semibold text-gray-900 dark:text-white">{user.name}</div>
+								</a>
 							</div>
-							<div class="w-24 font-semibold">{user.name}</div>
-						</div>
-						<div class="w-32 text-left">{user.reputation}</div>
-						<!-- Increased width and added text-left class -->
-					</div>
-				</a>
-			{/each}
-		</div>
+						</td>
+						<!-- <td class="space-x-2 whitespace-nowrap">
+						
+					</td> -->
+						<td class="text-[10px] md:text-sm space-x-2 whitespace-nowrap p-4 text-white">
+							<i class="text-yellow-500 fas fa-star"></i>
+							<span>{user.reputation}</span></td
+						>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
 	</div>
 </div>
 
