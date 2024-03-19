@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import logo from '$lib/assets/logo.png';
 	import Particles from '../components/Particles.svelte';
@@ -6,17 +6,25 @@
 	import { writable } from 'svelte/store';
 	let countdown = '';
 
-	let timerInterval;
+	let timerInterval: any;
 	$: loaded = writable(false);
+	$: countdownOn = true;
 
 	onMount(() => {
 		// Calculate the time remaining until 7 days from now
-		const deadline = new Date(2024, 2, 20, 22, 0, 0);
+		// const deadline = new Date(2024, 2, 20, 22, 0, 0);
 
+		const deadline = new Date(2024, 2, 19, 10, 58, 0);
 		// Function to update the countdown timer
 		function updateCountdown() {
 			const now = new Date();
 			const timeLeft = deadline - now;
+			if (timeLeft < 0) {
+				clearInterval(timerInterval);
+				countdown = 'Launched!';
+				countdownOn = false;
+				return;
+			}
 
 			const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
 			const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -47,8 +55,16 @@
 			<div class="text-gray-400 text-3xl font-serif mt-4 mb-6 tagline">
 				Kabhi online intro diya hai kya?
 			</div>
-			<div class="text-white text-xl font-serif m-2">Launching soon...</div>
-			<div class="text-white text-xl font-serif m-2">{countdown}</div>
+			{#if countdownOn}
+				<div class="text-white text-xl font-serif m-2">Launching soon...</div>
+				<div class="text-white text-xl font-serif m-2">{countdown}</div>
+			{:else}
+				<button
+					class="px-6 py-3 bg-gray-200 text-black font-semibold rounded-lg hover:bg-gray-500 transition duration-300"
+				>
+					<a href="/signup">Get Started</a>
+				</button>
+			{/if}
 		</div>
 	</div>
 {/if}

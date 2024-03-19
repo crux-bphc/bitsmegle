@@ -314,12 +314,12 @@
 				</div>
 				{#if running}
 					<button
-						class="bg-indigo-600 text-white py-2 px-4 rounded-md text-md"
+						class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md text-md"
 						disabled={$currentStatus[0] == 'F'}
 						on:click={handleConnect}>{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
 					>
 					<button
-						class="bg-rose-600 text-white py-2 px-4 rounded-md text-md"
+						class="bg-rose-600 hover:bg-rose-700 text-white py-2 px-4 rounded-md text-md"
 						on:click={running ? closeEverything : start}>{running ? 'End' : 'Start'}</button
 					>
 				{/if}

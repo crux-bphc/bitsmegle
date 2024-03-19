@@ -43,7 +43,9 @@
 	};
 </script>
 
-<div class="relative h-[45%] w-[90%] lg:h-[90%] lg:w-[48%] rounded-3xl overflow-hidden">
+<div
+	class="relative h-[45%] w-[90%] land:h-[85%] land:w-[48%] lg:h-[90%] lg:w-[48%] rounded-3xl overflow-hidden"
+>
 	<div class="flex w-full h-full items-center justify-center bg-gray-900">
 		<div class="flex flex-col text-center">
 			<div class="text-2xl text-white font-semibold mb-4">Rate {$user?.name}</div>

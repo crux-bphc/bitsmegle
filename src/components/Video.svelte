@@ -55,7 +55,7 @@
 		bind:this={nameplate}
 	>
 		{#if $currentUser}
-			<a href="/profile/{emailToId($currentUser.email)}">
+			<a href="/profile/{emailToId($currentUser.email)}" target="_blank">
 				<h2 class="text-sm lg:text-xl text-gray-200">{$currentUser.name}</h2>
 				<h2 class="text-xs lg:text-sm text-gray-300">{$currentUser.email}</h2>
 			</a>
