@@ -19,6 +19,22 @@ const io = new Server(server, {
 let userCount = 0;
 let calls = [];
 
+let stats = {
+	totalUsersConnected: 0,
+	maxActiveUserCount: 0,
+	totalCallsMade: 0,
+	totalCallsPaired: 0,
+	serverStartTime: new Date().toISOString()
+};
+
+app.get('/', (req, res) => {
+	res.send('Welcome to Bitsmegle!');
+});
+
+app.get('/stats', (req, res) => {
+	res.json(stats);
+});
+
 app.get('/stats/user-count', (req, res) => {
 	res.json({ userCount });
 });
@@ -47,6 +63,8 @@ app.get('/stats/calls', (req, res) => {
 io.on('connection', (socket) => {
 	// console.log('User connected');
 	userCount += 1;
+	stats.totalUsersConnected += 1;
+	stats.maxActiveUserCount = Math.max(stats.maxActiveUserCount, userCount);
 	io.sockets.emit('userCountChange', userCount);
 	socket.on('disconnect', () => {
 		// console.log('User disconnected');
@@ -65,12 +83,14 @@ io.on('connection', (socket) => {
 
 		if (call) {
 			console.log(data.name, 'is paired with', call.offerMakerUser.name);
+			stats.totalCallsPaired += 1;
 			call.paired = true;
 			call.answerMakerUser = data;
 			socket.emit('call-found', call.callId);
 		} else {
 			console.log('Found no one to pair with', data.name, 'at the moment');
 			socket.emit('call-not-found', null);
+			stats.totalCallsMade += 1;
 		}
 	});
 
