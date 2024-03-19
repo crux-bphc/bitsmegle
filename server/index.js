@@ -5,7 +5,7 @@ import { Server } from 'socket.io';
 
 // import { handler } from '../build/handler.js';
 
-const port = 3000;
+const port = process.env.PORT || 3000;
 const app = express();
 app.use(cors());
 const server = createServer(app);
@@ -121,5 +121,6 @@ io.on('connection', (socket) => {
 // SvelteKit should handle everything else using Express middleware
 // https://github.com/sveltejs/kit/tree/master/packages/adapter-node#custom-server
 // app.use(handler);
-console.log('Server listening on port', port);
-server.listen(port);
+server.listen(port, () => {
+	console.log(`App listening on port: ${port}`);
+});

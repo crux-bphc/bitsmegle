@@ -45,10 +45,10 @@
 	onMount(() => {
 		if ($socket === null) {
 			socket.set(
-				io('https://f0e5-14-98-244-193.ngrok-free.app', {
-					extraHeaders: {
-						'ngrok-skip-browser-warning': '1'
-					}
+				io('wss://bitsmegle-production.up.railway.app', {
+					// extraHeaders: {
+					// 	'ngrok-skip-browser-warning': '1'
+					// }
 				})
 			);
 
