@@ -1,29 +1,5 @@
 <!-- LeaderboardPage.svelte -->
 <script lang="ts">
-	import { user } from '$lib/stores/userStore';
-	import { onMount } from 'svelte';
-
-	// Function to fetch random users from the API
-	const fetchRandomUsers = async (count: number) => {
-		try {
-			const response = await fetch(`https://randomuser.me/api/?results=${count}`);
-			if (!response.ok) {
-				throw new Error('Failed to fetch random users');
-			}
-			const data = await response.json();
-			return data.results.map((user: any, index: any) => ({
-				id: index + 1,
-				pfp: user.picture.thumbnail,
-				name: `${user.name.first} ${user.name.last}`,
-				email: user.email,
-				reputation: Math.floor(Math.random() * 500) // Generating random reputation
-			}));
-		} catch (error) {
-			console.error('Error fetching random users:', error);
-			return [];
-		}
-	};
-
 	export let data;
 	let leaderboardData: any = data.data;
 	// onMount(async () => {
@@ -38,19 +14,31 @@
 		<table class="min-w-full table-fixed">
 			<thead class="text-gray-400">
 				<tr>
-					<th scope="col" class="p-0 md:p-2 text-left text-[10px] md:text-xs font-medium uppercase">Rank</th>
-					<th scope="col" class="p-4 text-left text-[10px] md:text-xs font-medium uppercase">Name</th>
+					<th scope="col" class="p-0 md:p-2 text-left text-[10px] md:text-xs font-medium uppercase"
+						>Rank</th
+					>
+					<th scope="col" class="p-4 text-left text-[10px] md:text-xs font-medium uppercase"
+						>Name</th
+					>
 					<!-- <th
 						scope="col"
 						class="p-4 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400"
 					></th> -->
-					<th scope="col" class="md:hidden block p-4 text-left text-[10px] md:text-xs font-medium uppercase">Rep</th>
-					<th scope="col" class="hidden md:block p-4 text-left text-[10px] md:text-xs font-medium uppercase">Reputation</th>
+					<th
+						scope="col"
+						class="md:hidden block p-4 text-left text-[10px] md:text-xs font-medium uppercase"
+						>Rep</th
+					>
+					<th
+						scope="col"
+						class="hidden md:block p-4 text-left text-[10px] md:text-xs font-medium uppercase"
+						>Reputation</th
+					>
 				</tr>
 			</thead>
 			<tbody class="">
 				{#each leaderboardData as user, i}
-					<tr class="hover:bg-gray-700 ">
+					<tr class="hover:bg-gray-700">
 						<td
 							class="bg-slate whitespace-nowrap p-4 font-mono text-[10px] md:text-sm md:m font-medium text-gray-900 dark:text-slate-500"
 							>{i + 1}</td
@@ -65,8 +53,12 @@
 							</a>
 							<div class="text-[10px] md:text-sm font-normal text-gray-500 dark:text-gray-400">
 								<a href="/profile/{user.id}">
-									<div class="md:hidden block font-semibold text-gray-900 dark:text-white">{user.name.split(" ")[0]}</div>
-									<div class="hidden md:block font-semibold text-gray-900 dark:text-white">{user.name}</div>
+									<div class="md:hidden block font-semibold text-gray-900 dark:text-white">
+										{user.name.split(' ')[0]}
+									</div>
+									<div class="hidden md:block font-semibold text-gray-900 dark:text-white">
+										{user.name}
+									</div>
 								</a>
 							</div>
 						</td>

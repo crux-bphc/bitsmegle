@@ -121,5 +121,5 @@ io.on('connection', (socket) => {
 // SvelteKit should handle everything else using Express middleware
 // https://github.com/sveltejs/kit/tree/master/packages/adapter-node#custom-server
 // app.use(handler);
-
+console.log('Server listening on port', port);
 server.listen(port);
