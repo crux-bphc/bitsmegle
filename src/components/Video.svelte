@@ -70,6 +70,7 @@
 			autoplay
 			playsinline
 			muted
+			controls={false}
 		>
 			<!-- Dummy track for accessibility -->
 			<track kind="captions" />
@@ -81,6 +82,7 @@
 			on:click={handleNameplateClick}
 			autoplay
 			playsinline
+			controls={false}
 		>
 			<!-- Dummy track for accessibility -->
 			<track kind="captions" />

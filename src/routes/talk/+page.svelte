@@ -115,9 +115,6 @@
 	};
 
 	const initiateWebRTC = async () => {
-		// Set remote stream to a new stream
-		remoteStream.set(new MediaStream());
-
 		// Set up WebRTC peer connection
 		const servers = {
 			iceServers: [
@@ -138,6 +135,8 @@
 		peerConnection.ontrack = async (event) => {
 			event.streams[0].getTracks().forEach((track) => {
 				if (track.readyState === 'live') {
+					// Set remote stream to a new stream
+					remoteStream.set(new MediaStream());
 					$remoteStream?.addTrack(track);
 					console.log('Got remote track:', track);
 					if (track.kind === 'video') {
@@ -152,6 +151,13 @@
 				console.log('Track removed');
 			};
 		};
+
+		peerConnection.addEventListener('connectionstatechange', (event) => {
+			if (peerConnection.connectionState === 'connected') {
+				// Peers connected
+				console.log('Peers connected');
+			}
+		});
 
 		peerConnection.oniceconnectionstatechange = async (event) => {
 			if (peerConnection.iceConnectionState === 'disconnected') {
