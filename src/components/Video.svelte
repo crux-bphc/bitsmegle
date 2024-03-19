@@ -27,9 +27,10 @@
 		hideNameplateLater();
 
 		storeStream.subscribe((stream: MediaStream | null) => {
-			console.log(stream);
+			// console.log(stream);
 
 			if (videoElement) videoElement.srcObject = stream;
+			hideNameplateLater();
 		});
 
 		currentUser.subscribe((user) => {
@@ -40,16 +41,24 @@
 			}
 		});
 	});
+
+	const emailToId = (email: string) => {
+		return email.split('@')[0] + email.split('@')[1][0];
+	};
 </script>
 
-<div class="relative h-[45%] w-[90%] land:h-[85%] land:w-[48%] lg:h-[90%] lg:w-[48%] rounded-3xl overflow-hidden">
+<div
+	class="relative h-[45%] w-[90%] land:h-[85%] land:w-[48%] lg:h-[90%] lg:w-[48%] rounded-3xl overflow-hidden"
+>
 	<div
 		class="backdrop-blur-sm absolute flex flex-col rounded-lg left-0 bottom-0 z-10 m-3 px-3 py-2"
 		bind:this={nameplate}
 	>
 		{#if $currentUser}
-			<h2 class="text-sm lg:text-xl text-gray-200">{$currentUser.name}</h2>
-			<h2 class="text-xs lg:text-sm text-gray-300">{$currentUser.email}</h2>
+			<a href="/profile/{emailToId($currentUser.email)}">
+				<h2 class="text-sm lg:text-xl text-gray-200">{$currentUser.name}</h2>
+				<h2 class="text-xs lg:text-sm text-gray-300">{$currentUser.email}</h2>
+			</a>
 		{/if}
 	</div>
 

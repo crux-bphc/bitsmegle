@@ -5,7 +5,7 @@ export const POST = async ({ request }) => {
 	let body = await request.json();
 
 	if (body.action === 'like') {
-		await users.updateOne({ id: body.targetId }, { $inc: { reputation: 1 } });
+		await users.updateOne({ id: body.targetId }, { $inc: { reputation: 3 } });
 	} else if (body.action === 'dislike') {
 		await users.updateOne({ id: body.targetId }, { $inc: { reputation: -1 } });
 	}
