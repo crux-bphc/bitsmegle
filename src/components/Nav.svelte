@@ -57,7 +57,7 @@
 			});
 
 			$socket?.on('userCountChange', (count) => {
-				console.log('changed to', count);
+				// console.log('changed to', count);
 				currentOnlineCount = count;
 			});
 		}
