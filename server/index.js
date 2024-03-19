@@ -19,12 +19,37 @@ const io = new Server(server, {
 let userCount = 0;
 let calls = [];
 
+app.get('/stats/user-count', (req, res) => {
+	res.json({ userCount });
+});
+
+app.get('/stats/calls', (req, res) => {
+	// stats (number) of calls
+
+	// total number of calls
+	let total = calls.length;
+
+	// number of calls that are not paired
+	let notPaired = calls.filter((call) => !call.paired).length;
+
+	// number of calls that are paired
+	let paired = calls.filter((call) => call.paired).length;
+
+	// number of calls that are not answered
+	let notAnswered = calls.filter((call) => call.answer === null).length;
+
+	// number of calls that are answered
+	let answered = calls.filter((call) => call.answer !== null).length;
+
+	res.json({ total, notPaired, paired, notAnswered, answered });
+});
+
 io.on('connection', (socket) => {
-	console.log('User connected');
+	// console.log('User connected');
 	userCount += 1;
 	io.sockets.emit('userCountChange', userCount);
 	socket.on('disconnect', () => {
-		console.log('User disconnected');
+		// console.log('User disconnected');
 		userCount -= 1;
 		// remove calls that are not paired (stale)
 		calls = calls.filter((call) => !call.paired && call.offerMaker !== socket);
