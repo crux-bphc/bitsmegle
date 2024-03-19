@@ -137,16 +137,20 @@
 
 		peerConnection.ontrack = async (event) => {
 			event.streams[0].getTracks().forEach((track) => {
-				$remoteStream?.addTrack(track);
+				if (track.readyState === 'live') {
+					$remoteStream?.addTrack(track);
+					console.log('Got remote track:', track);
+					if (track.kind === 'video') {
+						$socket?.emit('who-is-remote', { callId: currentCallId });
+
+						$currentStatus = 'Connected';
+					}
+				}
 			});
 
 			event.streams[0].onremovetrack = ({ track }) => {
 				console.log('Track removed');
 			};
-
-			$socket?.emit('who-is-remote', { callId: currentCallId });
-
-			$currentStatus = 'Connected';
 		};
 
 		peerConnection.oniceconnectionstatechange = async (event) => {

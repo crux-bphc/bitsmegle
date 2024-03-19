@@ -27,7 +27,7 @@
 		hideNameplateLater();
 
 		storeStream.subscribe((stream: MediaStream | null) => {
-			// console.log(stream);
+			console.log(stream);
 
 			if (videoElement) videoElement.srcObject = stream;
 			hideNameplateLater();
