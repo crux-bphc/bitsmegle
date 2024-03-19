@@ -45,7 +45,7 @@
 	onMount(() => {
 		if ($socket === null) {
 			socket.set(
-				// io('https://f0e5-14-98-244-193.ngrok-free.app', {
+				// io('https://9d5f-2401-4900-62ed-6df5-98ba-94a7-7483-ddf2.ngrok-free.app', {
 				// 	extraHeaders: {
 				// 		'ngrok-skip-browser-warning': '1'
 				// 	}

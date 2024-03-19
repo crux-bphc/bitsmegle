@@ -115,8 +115,13 @@ io.on('connection', (socket) => {
 		// console.log(' Offer Candidate received');
 		let call = calls.find((call) => call.callId === data.callId);
 		if (call) {
-			call.offerCandidates.push(data.candidate);
-			call.answerMaker?.emit('add-ice-candidate', data);
+			call.offerCandidates.push(data);
+			let interval = setInterval(() => {
+				if (call.answerMaker) {
+					call.answerMaker.emit('add-ice-candidate', data);
+					clearInterval(interval);
+				}
+			}, 1000);
 		}
 	});
 
@@ -135,6 +140,7 @@ io.on('connection', (socket) => {
 		if (call) {
 			call.answerCandidates = data.candidate;
 			call.offerMaker.emit('add-ice-candidate', data);
+			// call.answerMaker?.emit('add-ice-candidate', data.offerCandidates);
 		}
 	});
 
