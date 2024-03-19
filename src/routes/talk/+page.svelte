@@ -258,7 +258,7 @@
 	const endWebRTC = async (rate: boolean = true) => {
 		await peerConnection.close();
 
-		if (rate) {
+		if (rate && $remoteUser) {
 			// ask for rating
 			$rating = true;
 			await new Promise<void>((resolve) => {

@@ -121,7 +121,7 @@ io.on('connection', (socket) => {
 					call.answerMaker.emit('add-ice-candidate', data);
 					clearInterval(interval);
 				}
-			}, 1000);
+			}, 100);
 		}
 	});
 
