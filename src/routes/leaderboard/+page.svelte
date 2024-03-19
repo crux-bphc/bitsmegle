@@ -5,11 +5,15 @@
 	// onMount(async () => {
 	// 	leaderboardData = await fetchRandomUsers(5); // Fetching 5 random users
 	// });
+
+	const getID = (email: string) => {
+		return email.split('@')[0] + email.split('@')[1][0];
+	};
 </script>
 
 <div class=" flex justify-center items-center w-full mt-10">
 	<div class="text-white rounded-3xl shadow-2xl bg-slate-900 w-[80%] md:w-[800px] h-full p-6">
-		<div class="text-3xl mb-8 mt-3 ml-4 p-2 font-bold">Leaderboard</div>
+		<div class="text-3xl mb-8 mt-3 font-bold">Leaderboard</div>
 
 		<table class="min-w-full table-fixed">
 			<thead class="text-gray-400">
@@ -18,11 +22,11 @@
 						>Rank</th
 					>
 					<th scope="col" class="p-4 text-left text-[10px] md:text-xs font-medium uppercase"
-						>Name</th
+						>User</th
 					>
 					<!-- <th
 						scope="col"
-						class="p-4 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400"
+						class="p-4 text-left text-xs font-medium uppercase text-gray-400"
 					></th> -->
 					<th
 						scope="col"
@@ -40,7 +44,7 @@
 				{#each leaderboardData as user, i}
 					<tr class="hover:bg-gray-700">
 						<td
-							class="bg-slate whitespace-nowrap p-4 font-mono text-[10px] md:text-sm md:m font-medium text-gray-900 dark:text-slate-500"
+							class="bg-slate whitespace-nowrap p-4 font-mono text-[10px] md:text-sm md:m font-medium text-slate-500"
 							>{i + 1}</td
 						>
 						<td class="flex items-center space-x-6 whitespace-nowrap p-4">
@@ -51,15 +55,18 @@
 									alt=""
 								/>
 							</a>
-							<div class="text-[10px] md:text-sm font-normal text-gray-500 dark:text-gray-400">
+							<div class="text-[10px] md:text-sm font-normal text-gray-400">
 								<a href="/profile/{user.id}">
-									<div class="md:hidden block font-semibold text-gray-900 dark:text-white">
+									<div class="md:hidden block font-semibold text-white">
 										{user.name.split(' ')[0]}
 									</div>
-									<div class="hidden md:block font-semibold text-gray-900 dark:text-white">
+									<div class="hidden md:block font-semibold text-white">
 										{user.name}
 									</div>
-								</a>
+									<div class="text-[8px] md:text-sm font-normal text-gray-400">
+										{getID(user.email)}
+									</div></a
+								>
 							</div>
 						</td>
 						<!-- <td class="space-x-2 whitespace-nowrap">
