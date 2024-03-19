@@ -45,16 +45,16 @@
 	onMount(() => {
 		if ($socket === null) {
 			socket.set(
-				io('https://2887-2401-4900-62ed-6df5-181a-bb1d-fba1-2a22.ngrok-free.app', {
-					extraHeaders: {
-						'ngrok-skip-browser-warning': '1'
-					}
-				})
-				// io('wss://server.bitsmegle.live', {
-				// 	// extraHeaders: {
-				// 	// 	'ngrok-skip-browser-warning': '1'
-				// 	// }
+				// io('https://2887-2401-4900-62ed-6df5-181a-bb1d-fba1-2a22.ngrok-free.app', {
+				// 	extraHeaders: {
+				// 		'ngrok-skip-browser-warning': '1'
+				// 	}
 				// })
+				io('wss://server.bitsmegle.live', {
+					// extraHeaders: {
+					// 	'ngrok-skip-browser-warning': '1'
+					// }
+				})
 			);
 
 			$socket?.on('eventFromServer', (message) => {
