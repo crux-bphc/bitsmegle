@@ -47,10 +47,10 @@
 							class="bg-slate whitespace-nowrap p-4 font-mono text-[10px] md:text-sm md:m font-medium text-slate-500"
 							>{i + 1}</td
 						>
-						<td class="flex items-center space-x-6 whitespace-nowrap p-4">
+						<td class="flex items-center space-x-6 whitespace-nowrap md:px-4 py-4">
 							<a href="/profile/{user.id}">
 								<img
-									class="w-10 h-10 rounded-full object-cover object-right"
+									class="md:w-10 md:h-10 w-8 h-8 rounded-full object-cover object-right"
 									src={user.picture}
 									alt=""
 								/>

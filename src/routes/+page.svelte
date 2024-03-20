@@ -4,6 +4,7 @@
 	import Particles from '../components/Particles.svelte';
 	import Loader from '../components/Loader.svelte';
 	import { writable } from 'svelte/store';
+	import { user } from '$lib/stores/userStore';
 	let countdown = '';
 
 	let timerInterval: any;
@@ -62,7 +63,7 @@
 				<button
 					class="px-6 py-3 bg-gray-200 text-black font-semibold rounded-lg hover:bg-gray-500 transition duration-300"
 				>
-					<a href="/talk">Get Started</a>
+					<a href="/{!$user ? 'signup' : 'talk'}">Get Started</a>
 				</button>
 			{/if}
 		</div>
