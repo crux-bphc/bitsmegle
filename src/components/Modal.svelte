@@ -28,11 +28,8 @@
 	<!-- Description -->
 	<div class="mb-8 text-white">
 		<p>📱 For optimal performance:</p>
-		<ul class="list-disc ml-10 mb-2">
+		<ul class="list-disc ml-10 mb-6">
 			<li>Use mobile data instead of LAN for Bitsmegle.</li>
-			<li>
-				Preferably, use Android, Mac, or PC devices as Bitsmegle may not work reliably on iPhones.
-			</li>
 		</ul>
 		<p class="text-left">🐛 In case you encounter bugs, try refreshing.</p>
 		<p class="text-left ml-6 mt-2">
