@@ -3,6 +3,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { MongoClient } from 'mongodb';
+import { cookie } from 'cookie';
 
 const DB_URI = process.env.DB_URI;
 const SECRET_CLIENT_ID = process.env.SECRET_CLIENT_ID;
@@ -156,7 +157,7 @@ app.post('/api/users', async (req, res) => {
 		body = JSON.parse(body);
 	}
 
-	console.log(body.access_token);
+	// console.log(body.access_token);
 
 	// Try fetching user data with access token
 	let data = await getUserData(body.access_token);
@@ -227,7 +228,7 @@ app.post('/api/rep', async (req, res) => {
 	}
 });
 
-app.post('/api/leaderboard', async (req, res) => {
+app.get('/api/leaderboard', async (req, res) => {
 	try {
 		const data = await users.find().sort({ reputation: -1 }).limit(10).toArray();
 		const serializableData = data.map((item) => ({
@@ -241,7 +242,7 @@ app.post('/api/leaderboard', async (req, res) => {
 	}
 });
 
-app.get('/api/user/:id', async (req, res) => {
+app.get('/api/profile/:id', async (req, res) => {
 	try {
 		const data = await users.findOne({ id: req.params.id });
 		if (data) {
