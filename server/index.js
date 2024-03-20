@@ -125,7 +125,7 @@ const addUserToDB = async (user) => {
 	const existingUser = await users.findOne({ id: id });
 
 	if (existingUser) {
-		console.log('User already exists');
+		// console.log('User already exists');
 	} else {
 		// Add user to database
 		//
@@ -181,7 +181,6 @@ app.post('/api/users', async (req, res) => {
 	const newTokens = await refreshToken(body.refresh_token);
 	newTokens.refresh_token = body.refresh_token; // Preserve the refresh token
 	newTokens.expiry_date = Date.now() + newTokens.expires_in * 1000; // Calculate the new expiry date
-	console.log('newTokens', newTokens);
 	data = await getUserData(newTokens.access_token);
 	console.log(data.name, 'has logged in (after refresh)');
 	const serializedCookie = cookie.serialize('user', JSON.stringify(newTokens), {
