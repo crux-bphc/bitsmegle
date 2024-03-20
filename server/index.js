@@ -2,12 +2,34 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import { MongoClient } from 'mongodb';
+import { DB_URI } from '$env/static/private';
+import exp from 'constants';
+
+const client = new MongoClient(DB_URI);
+
+function startMongo() {
+	console.log('Starting MongoDB connection');
+	return client.connect();
+}
+
+startMongo()
+	.then(() => {
+		console.log('Connected to MongoDB');
+	})
+	.catch((err) => {
+		console.error('Error connecting to MongoDB', err);
+	});
+
+const db = client.db('bitsmegle');
+const users = db.collection('users');
 
 // import { handler } from '../build/handler.js';
 
 const port = process.env.PORT || 3000;
 const app = express();
 app.use(cors());
+app.use(express.json());
 const server = createServer(app);
 
 const io = new Server(server, {
@@ -71,6 +93,119 @@ app.get('/stats/calls', (req, res) => {
 
 	res.json({ total, notPaired, paired, notAnswered, answered });
 });
+
+// Main API LOGIC
+
+const getIdFromEmail = (email) => {
+	// convert email in the format f20230043@hyderabad.bits-pilani.ac.in to 'f20230043h'
+	const id = email.split('@')[0];
+	const idParts = email.split('@')[1].split('.');
+	const campus = idParts[0];
+	return id + campus[0];
+};
+
+const addUserToDB = async (user) => {
+	// Check if user already exists
+	const id = getIdFromEmail(user.email);
+
+	const existingUser = await users.findOne({ id: id });
+
+	if (existingUser) {
+		console.log('User already exists');
+	} else {
+		// Add user to database
+		//
+		let data = {
+			id: id,
+			name: user.name,
+			email: user.email,
+			picture: user.picture,
+			reputation: 0
+		};
+
+		await users.insertOne(data);
+		console.log('User added to database');
+	}
+};
+
+const getUserData = async (access_token) => {
+	const response = await fetch(
+		`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
+	);
+	const data = await response.json();
+	if (data.name === undefined) {
+		return { error: 'Failed to get user data' };
+	}
+	// convert to titlecase
+	data.name = data.name
+		.split(' ')
+		.map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
+		.join(' ');
+
+	// Add user to database
+	await addUserToDB(data);
+	return data;
+};
+
+app.post('/api/users', async (req, res) => {
+	let body = req.body;
+
+	if (typeof body.access_token !== 'string') {
+		body = JSON.parse(body);
+	}
+
+	console.log(body.access_token);
+
+	// Try fetching user data with access token
+	let data = await getUserData(body.access_token);
+	if (data.name !== undefined) {
+		console.log(data.name, 'has logged in');
+		return res.status(200).json(data);
+	}
+	// Handle expiration error specifically
+	console.error('Access token expired, attempting refresh');
+	const newTokens = await refreshToken(body.refresh_token);
+	newTokens.refresh_token = body.refresh_token; // Preserve the refresh token
+	newTokens.expiry_date = Date.now() + newTokens.expires_in * 1000; // Calculate the new expiry date
+	console.log('newTokens', newTokens);
+	data = await getUserData(newTokens.access_token);
+	console.log(data.name, 'has logged in (after refresh)');
+	const serializedCookie = cookie.serialize('user', JSON.stringify(newTokens), {
+		httpOnly: false,
+		maxAge: 60 * 60 * 24 * 7, // 1 week
+		path: '/',
+		sameSite: 'strict',
+		secure: true
+	});
+	return res.status(200).json(data).header('Set-Cookie', serializedCookie);
+});
+
+async function refreshToken(refresh_token) {
+	const url = 'https://oauth2.googleapis.com/token'; // Google token endpoint
+	const body = new URLSearchParams({
+		client_id: SECRET_CLIENT_ID,
+		client_secret: SECRET_CLIENT_SECRET,
+		refresh_token,
+		grant_type: 'refresh_token'
+	});
+
+	try {
+		const response = await fetch(url, {
+			method: 'POST',
+			body
+		});
+
+		if (!response.ok) {
+			throw new Error('Failed to refresh access token');
+		}
+
+		const data = await response.json();
+		return data; // Return the new data
+	} catch (error) {
+		console.error('Error refreshing access token:', error);
+		throw error; // Re-throw the error for handling in the POST function
+	}
+}
 
 io.on('connection', (socket) => {
 	// console.log('User connected');

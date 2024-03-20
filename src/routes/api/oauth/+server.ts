@@ -3,38 +3,6 @@ import cookie from 'cookie';
 import { SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, REDIRECT_URI } from '$env/static/private';
 import { users } from '../../../db/users';
 
-const getIdFromEmail = (email: string) => {
-	// convert email in the format f20230043@hyderabad.bits-pilani.ac.in to 'f20230043h'
-	const id = email.split('@')[0];
-	const idParts = email.split('@')[1].split('.');
-	const campus = idParts[0];
-	return id + campus[0];
-};
-
-const addUserToDB = async (user) => {
-	// Check if user already exists
-	const id = getIdFromEmail(user.email);
-
-	const existingUser = await users.findOne({ id: id });
-
-	if (existingUser) {
-		console.log('User already exists');
-	} else {
-		// Add user to database
-		//
-		let data = {
-			id: id,
-			name: user.name,
-			email: user.email,
-			picture: user.picture,
-			reputation: 0
-		};
-
-		await users.insertOne(data);
-		console.log('User added to database');
-	}
-};
-
 const getUserData = async (access_token: string) => {
 	const response = await fetch(
 		`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
@@ -68,11 +36,8 @@ export const GET = async ({ url }) => {
 		const user = oAuth2Client.credentials;
 		console.log('credentials', user);
 
-		let userData = await getUserData(user.access_token);
-		await addUserToDB(userData);
-
 		// let data = await getUserData(user.access_token);
-		userData = JSON.stringify(user);
+		let userData = JSON.stringify(user);
 
 		// Serialize your user data or a session token into a cookie
 		const serializedCookie = cookie.serialize('user', userData, {

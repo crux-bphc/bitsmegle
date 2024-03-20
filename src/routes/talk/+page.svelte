@@ -35,7 +35,7 @@
 	onMount(async () => {
 		const userData = parseCookie(document.cookie).user;
 		if (userData) {
-			fetch('/api/users', {
+			fetch('https://server.bitsmegle.live/api/users', {
 				method: 'POST',
 				body: userData,
 				headers: {
