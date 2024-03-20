@@ -56,6 +56,7 @@
 		$socket?.on('answer-made', async (data) => {
 			if (data.answer) {
 				await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+				$currentStatus = 'Found someone';
 			}
 		});
 
