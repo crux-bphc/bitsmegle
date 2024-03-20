@@ -69,7 +69,7 @@
 		// setCurrentOnlineCount();
 		// setInterval(() => setCurrentOnlineCount(), 5 * 1000); // Every 5 seconds
 		const userData = parseCookie(document.cookie).user;
-		setInterval(() => checkExpiration(userData), 60 * 1000); // Every minute
+		setInterval(() => checkExpiration(userData), 10 * 60 * 1000); // Every 10 minutes
 	});
 </script>
 

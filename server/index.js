@@ -180,7 +180,7 @@ app.post('/api/users', async (req, res) => {
 		sameSite: 'strict',
 		secure: true
 	});
-	return res.status(200).header('Set-Cookie', serializedCookie).json(data);
+	return res.header('Set-Cookie', serializedCookie).status(200).json(data);
 });
 
 async function refreshToken(refresh_token) {
