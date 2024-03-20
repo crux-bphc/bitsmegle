@@ -3,8 +3,10 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { MongoClient } from 'mongodb';
-import { DB_URI } from '$env/static/private';
-import exp from 'constants';
+
+const DB_URI = process.env.DB_URI;
+const SECRET_CLIENT_ID = process.env.SECRET_CLIENT_ID;
+const SECRET_CLIENT_SECRET = process.env.SECRET_CLIENT_SECRET;
 
 const client = new MongoClient(DB_URI);
 
