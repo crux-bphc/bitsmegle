@@ -29,7 +29,15 @@
 		storeStream.subscribe((stream: MediaStream | null) => {
 			console.log(stream);
 
-			if (videoElement) videoElement.srcObject = stream;
+			let interval = setInterval(() => {
+				if (videoElement) {
+					videoElement.srcObject = stream;
+					clearInterval(interval);
+				} else {
+					console.error('Video element not found retrying in 1s');
+				}
+			}, 1000);
+
 			hideNameplateLater();
 		});
 
