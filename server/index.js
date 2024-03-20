@@ -32,7 +32,19 @@ app.get('/', (req, res) => {
 });
 
 app.get('/stats', (req, res) => {
-	res.json(stats);
+	// elapsed time in readable format
+	let elapsedTime = new Date() - new Date(stats.serverStartTime);
+	let seconds = Math.floor(elapsedTime / 1000);
+	let minutes = Math.floor(seconds / 60);
+	let hours = Math.floor(minutes / 60);
+	let days = Math.floor(hours / 24);
+	seconds = seconds % 60;
+	minutes = minutes % 60;
+	hours = hours % 24;
+
+	let elapsedTimeReadable = `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`;
+
+	res.json({ ...stats, elapsedTime, elapsedTimeReadable });
 });
 
 app.get('/stats/user-count', (req, res) => {
