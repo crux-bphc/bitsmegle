@@ -339,12 +339,16 @@
 				</div>
 				{#if running}
 					<button
-						class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md text-md"
+						class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md text-md disabled:opacity-50 {$rating
+							? 'hidden'
+							: ''}"
 						disabled={$currentStatus[0] == 'F'}
 						on:click={handleConnect}>{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
 					>
 					<button
-						class="bg-rose-600 hover:bg-rose-700 text-white py-2 px-4 rounded-md text-md"
+						class="bg-rose-600 hover:bg-rose-700 text-white py-2 px-4 rounded-md text-md {$rating
+							? 'hidden'
+							: ''}"
 						on:click={running ? closeEverything : start}>{running ? 'End' : 'Start'}</button
 					>
 				{/if}
@@ -365,13 +369,17 @@
 
 			{#if running}
 				<button
-					class="bg-indigo-600 text-white p-2 rounded-lg text-md my-auto ml-4 disabled:opacity-50"
+					class="bg-indigo-600 text-white p-2 rounded-lg text-md my-auto ml-4 disabled:opacity-50 {$rating
+						? 'hidden'
+						: ''}"
 					on:click={handleConnect}
 					disabled={$currentStatus[0] == 'F' && running}
 					>{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
 				>
 				<button
-					class="bg-rose-600 text-white py-2 px-4 rounded-md text-md my-auto ml-4"
+					class="bg-rose-600 text-white py-2 px-4 rounded-md text-md my-auto ml-4 {$rating
+						? 'hidden'
+						: ''}"
 					on:click={running ? closeEverything : start}>{running ? 'End' : 'Start'}</button
 				>
 			{/if}
