@@ -233,7 +233,7 @@ app.post('/api/rep', async (req, res) => {
 
 		// console.log(typeof body, body, typeof body.access_token, body.data.access_token);
 
-		if (typeof body.access_token !== 'string') {
+		if (typeof body.data.access_token !== 'string') {
 			return res.status(400).send('Invalid access token');
 		}
 
