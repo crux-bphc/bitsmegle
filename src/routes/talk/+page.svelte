@@ -139,11 +139,6 @@
 					remoteStream.set(new MediaStream());
 					$remoteStream?.addTrack(track);
 					console.log('Got remote track:', track);
-					if (track.kind === 'video') {
-						$socket?.emit('who-is-remote', { callId: currentCallId });
-
-						$currentStatus = 'Connected';
-					}
 				}
 			});
 
@@ -156,6 +151,9 @@
 			if (peerConnection.connectionState === 'connected') {
 				// Peers connected
 				console.log('Peers connected');
+				$socket?.emit('who-is-remote', { callId: currentCallId });
+
+				$currentStatus = 'Connected';
 			}
 		});
 
