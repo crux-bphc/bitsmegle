@@ -32,7 +32,7 @@
 
 	const checkExpiration = (userData: string) => {
 		if (userData && JSON.parse(userData).expiry_date < Date.now()) {
-			fetch('/api/users', {
+			fetch('https://server.bitsmegle.live/api/users', {
 				method: 'POST',
 				body: userData,
 				headers: {
