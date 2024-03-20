@@ -43,6 +43,7 @@ const io = new Server(server, {
 
 let userCount = 0;
 let calls = [];
+let interactions = {}; // {user1: [user2, user3]}
 
 let stats = {
 	totalUsersConnected: 0,
@@ -95,6 +96,16 @@ app.get('/stats/calls', (req, res) => {
 	let answered = calls.filter((call) => call.answer !== null).length;
 
 	res.json({ total, notPaired, paired, notAnswered, answered });
+});
+
+app.get('/stats/interactions', (req, res) => {
+	// stats (number) of interactions
+	let totalInteractions = 0;
+	for (let user in interactions) {
+		totalInteractions += interactions[user].length;
+	}
+
+	res.json({ totalInteractions, interactions });
 });
 
 // Main API LOGIC
@@ -215,10 +226,26 @@ app.post('/api/rep', async (req, res) => {
 	// TODO: Add auth
 	try {
 		let body = req.body;
+		if (typeof body === 'string') {
+			body = JSON.parse(body);
+		}
+
+		if (typeof body.access_token !== 'string') {
+			return res.status(400).send('Invalid access token');
+		}
+
+		const userData = await getUserData(body.data.access_token);
+		const userId = getIdFromEmail(userData.email);
+		interactions[userId] = interactions[userId] || [];
+		if (interactions[userId].includes(body.targetId)) {
+			return res.status(409).send('Already rated this user today!');
+		}
 
 		if (body.action === 'like') {
+			interactions[userId].push(body.targetId);
 			await users.updateOne({ id: body.targetId }, { $inc: { reputation: 3 } });
 		} else if (body.action === 'dislike') {
+			interactions[userId].push(body.targetId);
 			await users.updateOne({ id: body.targetId }, { $inc: { reputation: -1 } });
 		}
 

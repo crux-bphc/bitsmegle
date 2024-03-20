@@ -3,6 +3,7 @@
 	const dispatch = createEventDispatcher();
 
 	import { remoteUser } from '$lib/stores/userStore';
+	import e from 'express';
 
 	$: user = remoteUser;
 
@@ -14,6 +15,17 @@
 		return id + campus[0];
 	};
 
+	const parseCookie = (cookieString: string): Record<string, string> => {
+		const cookies: Record<string, string> = {};
+		cookieString.split(';').forEach((cookie) => {
+			const [cookieName, cookieValue] = cookie
+				.split('=')
+				.map((part) => decodeURIComponent(part.trim()));
+			cookies[cookieName] = cookieValue || '';
+		});
+		return cookies;
+	};
+
 	const updateUser = async (action: 'like' | 'dislike') => {
 		const response = await fetch(`https://server.bitsmegle.live/api/rep`, {
 			method: 'POST',
@@ -22,11 +34,16 @@
 			},
 			body: JSON.stringify({
 				action,
+				data: parseCookie(document.cookie).user,
 				targetId: getIdFromEmail($user?.email)
 			})
 		});
-		if (!response.ok) {
-			console.error('Failed to update user');
+		if (response.status !== 200 && response.status !== 409) {
+			console.error('Could not update user rep');
+		} else if (response.status === 409) {
+			console.log('Already liked/disliked user');
+		} else if (response.status === 200) {
+			console.log('Updated user rep');
 		}
 	};
 
