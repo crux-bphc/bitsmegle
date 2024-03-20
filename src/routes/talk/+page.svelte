@@ -62,10 +62,10 @@
 
 		// When answered, add candidate to peer connection
 		$socket?.on('add-ice-candidate', (data) => {
-			console.log(data);
+			// console.log(data);
 			if (data.candidate) {
 				peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-				console.log('Added ice candidate');
+				// console.log('Added ice candidate');
 			}
 		});
 
@@ -74,7 +74,7 @@
 			if (typeof data == 'undefined') {
 				// Person didn't give permissions for camera but somehow connected?
 			}
-			console.log(data);
+			// console.log(data);
 			const offerDescription = new RTCSessionDescription(data.offer); // ignore this
 			await peerConnection.setRemoteDescription(offerDescription);
 			const answerDescription = await peerConnection.createAnswer();
@@ -150,12 +150,12 @@
 					} else {
 						$remoteStream?.addTrack(track);
 					}
-					console.log('Got remote track:', track);
+					// console.log('Got remote track:', track);
 				}
 			});
 
 			event.streams[0].onremovetrack = ({ track }) => {
-				console.log('Track removed');
+				// console.log('Track removed');
 			};
 		};
 
@@ -179,9 +179,9 @@
 					await endWebRTC();
 					await initiateWebRTC();
 				} else if ($currentStatus[0] === 'F') {
-					console.log('Finding someone else...');
-					$currentStatus = 'Finding someone...';
-					await handleConnect();
+					$currentStatus = 'Idle, disconnected (please switch from LAN to mobile data)';
+					await endWebRTC();
+					await initiateWebRTC();
 				}
 				// remoteStream.getTracks().forEach((track) => track.stop());
 			}
