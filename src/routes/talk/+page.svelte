@@ -204,6 +204,7 @@
 			await initiateWebRTC();
 		}
 		console.log('Looking for somebody...');
+		$currentStatus = 'Finding somebody...';
 		$socket?.emit('looking-for-somebody', $user);
 
 		// let res = await fetch('/api/calls', {
