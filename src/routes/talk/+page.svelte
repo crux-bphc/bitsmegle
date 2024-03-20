@@ -136,8 +136,13 @@
 			event.streams[0].getTracks().forEach((track) => {
 				if (track.readyState === 'live') {
 					// Set remote stream to a new stream
-					remoteStream.set(new MediaStream());
-					$remoteStream?.addTrack(track);
+					if (!$remoteStream) {
+						let m = new MediaStream();
+						m.addTrack(track);
+						remoteStream.set(m);
+					} else {
+						$remoteStream?.addTrack(track);
+					}
 					console.log('Got remote track:', track);
 				}
 			});
@@ -162,9 +167,15 @@
 				// TODO: For some reason this fires quite late even after user dissconnects
 				// Peer connection disconnected, you may consider this as no more remote data
 				console.log('Peer connection disconnected');
-				$currentStatus = 'Idle, disconnected';
-				await endWebRTC();
-				await initiateWebRTC();
+				if ($currentStatus[0] === 'C') {
+					$currentStatus = 'Idle, disconnected';
+					await endWebRTC();
+					await initiateWebRTC();
+				} else if ($currentStatus[0] === 'F') {
+					console.log('Finding someone else...');
+					$currentStatus = 'Finding someone...';
+					await handleConnect();
+				}
 				// remoteStream.getTracks().forEach((track) => track.stop());
 			}
 		};
@@ -282,11 +293,10 @@
 		}
 
 		// Close WebRTC connection and WebSocket connection
-		setTimeout(() => {
-			remoteStream.set(null);
 
-			remoteUser.set(null);
-		}, 1000);
+		remoteStream.set(null);
+
+		remoteUser.set(null);
 
 		// RTCDataChannel.close()
 
