@@ -3,7 +3,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { MongoClient } from 'mongodb';
-import { cookie } from 'cookie';
+import cookie from 'cookie';
 
 const DB_URI = process.env.DB_URI;
 const SECRET_CLIENT_ID = process.env.SECRET_CLIENT_ID;
@@ -157,7 +157,7 @@ app.post('/api/users', async (req, res) => {
 		body = JSON.parse(body);
 	}
 
-	// console.log(body.access_token);
+	//console.log(body.access_token);
 
 	// Try fetching user data with access token
 	let data = await getUserData(body.access_token);
