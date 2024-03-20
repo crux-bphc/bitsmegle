@@ -177,7 +177,7 @@ app.post('/api/users', async (req, res) => {
 		httpOnly: false,
 		maxAge: 60 * 60 * 24 * 7, // 1 week
 		path: '/',
-		sameSite: 'none',
+		sameSite: 'strict',
 		secure: true
 	});
 	// return res.header('Set-Cookie', serializedCookie).status(200).json(data);
