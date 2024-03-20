@@ -62,7 +62,7 @@
 				<button
 					class="px-6 py-3 bg-gray-200 text-black font-semibold rounded-lg hover:bg-gray-500 transition duration-300"
 				>
-					<a href="/signup">Get Started</a>
+					<a href="/talk">Get Started</a>
 				</button>
 			{/if}
 		</div>
