@@ -54,7 +54,8 @@
 
 	let onParticlesLoaded = (event) => {
 		const particlesContainer = event.detail.particles;
-		loaded.set(true);
+		loaded.set(2);
+
 		// you can use particlesContainer to call all the Container class
 		// (from the core library) methods like play, pause, refresh, start, stop
 	};
@@ -72,7 +73,7 @@
 <svelte:component
 	this={ParticlesComponent}
 	id="tsparticles"
-	class=""
+	class="overflow-y-hidden"
 	style=""
 	options={particlesConfig}
 	on:particlesLoaded={onParticlesLoaded}

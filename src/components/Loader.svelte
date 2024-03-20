@@ -1,11 +1,13 @@
 <script>
 	export let color = 'light';
+	export let hide = false;
 </script>
 
 <div
 	class="flex w-full h-full items-center justify-center {color === 'light'
 		? 'bg-slate-900'
-		: 'bg-slate-950'} animate-none"
+		: 'bg-slate-950'} overflow-hidden animate-none
+		{hide ? 'absolute z-10 x-0 y-0' : ''}"
 >
 	<div class="loader">
 		<svg viewBox="0 0 80 80">

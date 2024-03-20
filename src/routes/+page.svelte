@@ -8,14 +8,14 @@
 	let countdown = '';
 
 	let timerInterval: any;
-	$: loaded = writable(false);
+	$: loaded = writable(0);
 	$: countdownOn = true;
 
 	onMount(() => {
 		// Calculate the time remaining until 7 days from now
 		const deadline = new Date(2024, 2, 20, 22, 0, 0);
 
-		// const deadline = new Date(2024, 2, 19, 10, 58, 0);
+		// const deadline = new Date(2024, 2, 20, 10, 58, 0);
 		// Function to update the countdown timer
 		function updateCountdown() {
 			const now = new Date();
@@ -42,33 +42,32 @@
 
 <Particles {loaded} />
 
-{#if !$loaded}
-	<Loader color="dark" />
-{:else}
-	<div class="flex flex-col justify-center items-center h-full">
-		<div class="flex flex-col justify-center items-center z-10">
-			<div class="h-full flex items-center justify-center">
-				<img class="h-16 mr-3" src={logo} alt="Logo" />
-				<h1 class="text-white text-5xl pt-1 lg:pt-2 lg:text-7xl lg:pb-2">
-					<span class="font-semibold font-sans">BITS</span><span class="font-cursive">megle</span>
-				</h1>
-			</div>
-			<div class="text-gray-400 text-3xl font-serif mt-4 mb-6 tagline">
-				Kabhi online intro diya hai kya?
-			</div>
-			{#if countdownOn}
-				<div class="text-white text-xl font-serif m-2">Launching soon...</div>
-				<div class="text-white text-xl font-serif m-2">{countdown}</div>
-			{:else}
-				<button
-					class="px-6 py-3 bg-gray-200 text-black font-semibold rounded-lg hover:bg-gray-500 transition duration-300"
-				>
-					<a href="/{!$user ? 'signup' : 'talk'}">Get Started</a>
-				</button>
-			{/if}
-		</div>
-	</div>
+{#if $loaded === 0}
+	<Loader color="dark" hide={true} />
 {/if}
+<div class="{$loaded === 2 ? 'flex' : 'hidden'} flex-col justify-center items-center h-full">
+	<div class="flex flex-col justify-center items-center z-10">
+		<div class="h-full flex items-center justify-center">
+			<img class="h-16 mr-3" src={logo} alt="Logo" />
+			<h1 class="text-white text-5xl pt-1 lg:pt-2 lg:text-7xl lg:pb-2">
+				<span class="font-semibold font-sans">BITS</span><span class="font-cursive">megle</span>
+			</h1>
+		</div>
+		<div class="text-gray-400 text-3xl font-serif mt-4 mb-6 tagline">
+			Kabhi online intro diya hai kya?
+		</div>
+		{#if countdownOn}
+			<div class="text-white text-xl font-serif m-2">Launching soon...</div>
+			<div class="text-white text-xl font-serif m-2">{countdown}</div>
+		{:else}
+			<button
+				class="px-6 py-3 bg-gray-200 text-black font-semibold rounded-lg hover:bg-gray-500 transition duration-300"
+			>
+				<a href="/{!$user ? 'signup' : 'talk'}">Get Started</a>
+			</button>
+		{/if}
+	</div>
+</div>
 
 <style>
 	.tagline {
