@@ -163,7 +163,7 @@ app.post('/api/users', async (req, res) => {
 	let data = await getUserData(body.access_token);
 	if (data.name !== undefined) {
 		console.log(data.name, 'has logged in');
-		return res.status(200).json(data);
+		return res.status(200).json({ data: data, cookie: null });
 	}
 	// Handle expiration error specifically
 	console.error('Access token expired, attempting refresh');
@@ -180,7 +180,8 @@ app.post('/api/users', async (req, res) => {
 		sameSite: 'none',
 		secure: true
 	});
-	return res.header('Set-Cookie', serializedCookie).status(200).json(data);
+	// return res.header('Set-Cookie', serializedCookie).status(200).json(data);
+	return res.status(200).json({ data: data, cookie: serializedCookie });
 });
 
 async function refreshToken(refresh_token) {

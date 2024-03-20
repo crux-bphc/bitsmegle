@@ -30,15 +30,21 @@
 	// 		.then((data) => (currentOnlineCount = data.count));
 	// };
 
-	const checkExpiration = (userData: string) => {
+	const checkExpiration = async (userData: string) => {
 		if (userData && JSON.parse(userData).expiry_date < Date.now()) {
-			fetch('https://server.bitsmegle.live/api/users', {
+			let res = await fetch('https://server.bitsmegle.live/api/users', {
 				method: 'POST',
 				body: userData,
 				headers: {
 					'Content-Type': 'application/json'
 				}
 			});
+
+			let data = await res.json();
+			let cookie = data.cookie;
+			if (cookie) {
+				document.cookie = cookie;
+			}
 		}
 	};
 
