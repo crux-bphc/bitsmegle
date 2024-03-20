@@ -7,6 +7,7 @@
 	import Video from '../../components/Video.svelte';
 	import Chat from '../../components/Chat.svelte';
 	import Rate from '../../components/Rate.svelte';
+	import Modal from '../../components/Modal.svelte';
 
 	import { localStream, remoteStream } from '$lib/stores/streamStore';
 	import MobileChat from '../../components/MobileChat.svelte';
@@ -47,8 +48,6 @@
 		} else {
 			return goto('/signup');
 		}
-
-		await start();
 
 		// Listen for remote answer
 		$socket?.on('answer-made', async (data) => {
@@ -102,6 +101,10 @@
 			remoteUser.set(data);
 		});
 	});
+
+	const handleModalClose = async () => {
+		await start();
+	};
 
 	const parseCookie = (cookieString: string): Record<string, string> => {
 		const cookies: Record<string, string> = {};
@@ -312,6 +315,7 @@
 	};
 </script>
 
+<Modal on:close={handleModalClose} />
 {#if $user}
 	<section
 		class="h-[85%] land:h-[75%] land:flex-row lg:h-[75%] flex flex-col lg:flex-row items-center justify-evenly"
