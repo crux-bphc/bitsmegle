@@ -226,9 +226,12 @@ app.post('/api/rep', async (req, res) => {
 	// TODO: Add auth
 	try {
 		let body = req.body;
+		console.log(typeof body, body);
 		if (typeof body === 'string') {
 			body = JSON.parse(body);
 		}
+
+		console.log(typeof body, body, typeof body.access_token, body.data.access_token);
 
 		if (typeof body.access_token !== 'string') {
 			return res.status(400).send('Invalid access token');
