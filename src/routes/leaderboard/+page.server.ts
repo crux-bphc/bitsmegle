@@ -2,12 +2,8 @@ import { users } from '../../db/users';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
-	const data = await users.find({}).sort({ reputation: -1 }).limit(10).toArray();
-
-	const serializableData = data.map((item) => ({
-		...item,
-		_id: item._id.toString() // Convert ObjectId to string
-	}));
+	// TODO: Error handling
+	const serializableData = await fetch('https://server.bitsmegle.live/api/leaderboard');
 
 	return {
 		data: serializableData

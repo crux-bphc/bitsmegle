@@ -209,6 +209,54 @@ async function refreshToken(refresh_token) {
 	}
 }
 
+app.post('/api/rep', async (req, res) => {
+	// TODO: Add auth
+	try {
+		let body = req.body;
+
+		if (body.action === 'like') {
+			await users.updateOne({ id: body.targetId }, { $inc: { reputation: 3 } });
+		} else if (body.action === 'dislike') {
+			await users.updateOne({ id: body.targetId }, { $inc: { reputation: -1 } });
+		}
+
+		res.status(200).send('Success');
+	} catch (error) {
+		console.error(error);
+		res.status(500).send('Internal Server Error');
+	}
+});
+
+app.post('/api/leaderboard', async (req, res) => {
+	try {
+		const data = await users.find().sort({ reputation: -1 }).limit(10).toArray();
+		const serializableData = data.map((item) => ({
+			...item,
+			_id: item._id.toString() // Convert ObjectId to string
+		}));
+		res.status(200).json(serializableData);
+	} catch (error) {
+		console.error(error);
+		res.status(500).send('Internal Server Error');
+	}
+});
+
+app.get('/api/user/:id', async (req, res) => {
+	try {
+		const data = await users.findOne({ id: req.params.id });
+		if (data) {
+			res.status(200).json({ ...data, _id: data._id.toString() });
+		} else {
+			res.status(404).send('User not found');
+		}
+	} catch (error) {
+		console.error(error);
+		res.status(500).send('Internal Server Error');
+	}
+});
+
+// Signaling Socket IO Server
+
 io.on('connection', (socket) => {
 	// console.log('User connected');
 	userCount += 1;

@@ -15,7 +15,7 @@
 	};
 
 	const updateUser = async (action: 'like' | 'dislike') => {
-		const response = await fetch(`/api/rep`, {
+		const response = await fetch(`https://server.bitsmegle.live/api/rep`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'

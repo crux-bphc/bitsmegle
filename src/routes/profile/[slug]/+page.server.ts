@@ -4,10 +4,10 @@ import type { PageServerLoad } from './$types.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export const load: PageServerLoad = async ({ params }) => {
-	const user = await users.findOne({ id: params.slug });
-	if (user) {
-		return { ...user, _id: user._id.toString() };
+	try {
+		const user = await fetch('https://server.bitsmegle.live/api/profile/' + params.slug);
+		return user;
+	} catch (e) {
+		error(404, 'Profile Not found');
 	}
-
-	error(404, 'Profile Not found');
 };
