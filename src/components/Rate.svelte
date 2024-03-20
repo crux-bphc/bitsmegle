@@ -3,7 +3,6 @@
 	const dispatch = createEventDispatcher();
 
 	import { remoteUser } from '$lib/stores/userStore';
-	import e from 'express';
 
 	$: user = remoteUser;
 
