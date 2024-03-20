@@ -26,11 +26,19 @@
 
 	const start = async () => {
 		// Start button wont work
+
 		running = true;
-		const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-		localStream.set(stream);
-		console.log(stream);
-		await initiateWebRTC();
+		try {
+			const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+			localStream.set(stream);
+			// console.log(stream);
+			await initiateWebRTC();
+		} catch (e: any) {
+			running = false;
+			if (e.name === 'NotAllowedError') {
+				$currentStatus = 'Permission Denied';
+			}
+		}
 	};
 
 	onMount(async () => {
@@ -179,7 +187,7 @@
 					await endWebRTC();
 					await initiateWebRTC();
 				} else if ($currentStatus[0] === 'F') {
-					$currentStatus = 'Idle, disconnected (please switch from LAN to mobile data)';
+					$currentStatus = "Idle, couldn't connect";
 					await endWebRTC();
 					await initiateWebRTC();
 				}

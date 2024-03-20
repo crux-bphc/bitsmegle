@@ -29,13 +29,15 @@
 	<div class="mb-8 text-white">
 		<p>📱 For optimal performance:</p>
 		<ul class="list-disc ml-10 mb-6">
-			<li>Use mobile data instead of LAN for Bitsmegle.</li>
+			<li class="font-semibold">Use mobile data instead of LAN.</li>
 		</ul>
 		<p class="text-left">🐛 In case you encounter bugs, try refreshing.</p>
 		<p class="text-left ml-6 mt-2">
 			If the issue persists please report it on our
-			<a href="https://www.facebook.com/groups/322411787096169" class="text-blue-300"
-				>facebook community</a
+			<a
+				href="https://www.facebook.com/groups/322411787096169"
+				target="_blank"
+				class="text-blue-300 hover:underline">facebook community</a
 			>.
 		</p>
 	</div>
