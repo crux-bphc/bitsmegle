@@ -365,7 +365,7 @@
 			</div>
 		</div>
 
-		<!-- <Chat /> -->
+		<Chat />
 	</section>
 
 	{#if false}
