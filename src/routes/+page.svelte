@@ -13,7 +13,7 @@
 
 	onMount(() => {
 		// Calculate the time remaining until 7 days from now
-		const deadline = new Date(2024, 2, 20, 22, 0, 0);
+		const deadline = new Date(2024, 3, 5, 22, 0, 0);
 
 		// const deadline = new Date(2024, 2, 20, 10, 58, 0);
 		// Function to update the countdown timer
@@ -57,7 +57,7 @@
 			Kabhi online intro diya hai kya?
 		</div>
 		{#if countdownOn}
-			<div class="text-white text-xl font-serif m-2">Launching soon...</div>
+			<div class="text-white text-xl font-serif m-2">Launching in all BITS campuses soon...</div>
 			<div class="text-white text-xl font-serif m-2">{countdown}</div>
 		{:else}
 			<button
