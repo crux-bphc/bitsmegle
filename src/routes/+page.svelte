@@ -13,7 +13,7 @@
 
 	onMount(() => {
 		// Calculate the time remaining until 7 days from now
-		const deadline = new Date(2024, 3, 5, 22, 0, 0);
+		const deadline = new Date(2024, 3, 25, 22, 0, 0);
 
 		// const deadline = new Date(2024, 2, 20, 10, 58, 0);
 		// Function to update the countdown timer
