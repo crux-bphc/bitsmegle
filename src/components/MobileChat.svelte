@@ -28,7 +28,7 @@
 <!-- drawer component -->
 <div
 	id="drawer-example"
-	class="fixed top-0 left-0 z-40 h-screen p-4 overflow-y-auto transition-transform {$drawer &&
+	class="fixed top-0 left-0 z-40 h-full p-4 overflow-y-auto transition-transform {$drawer &&
 		'-translate-x-full'} bg-white w-[85%] dark:bg-gray-900 opacity-[98%]"
 	tabindex="-1"
 	aria-labelledby="drawer-label"
@@ -40,7 +40,7 @@
 		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
-				class="h-6 w-6"
+				class="h-4 w-4"
 				fill="none"
 				viewBox="0 0 24 24"
 				stroke="currentColor"
@@ -54,17 +54,17 @@
 			</svg>
 		</button>
 		<div
-			class="w-full h-[95%] bg-slate-800 rounded-t-3xl flex flex-col-reverse p-1 py-5 overflow-y-scroll overflow-x-hidden"
+			class="w-full h-[90%] bg-slate-800 rounded-t-3xl flex flex-col-reverse p-1 py-5 overflow-y-scroll overflow-x-hidden"
 		>
 			{#each messages as message}
-				<p class="w-full text-2xl h-[40px] p-3 text-gray-300">
+				<p class="w-full text-lg p-3 text-gray-300">
 					<span class="text-blue-300">{message.sender}: </span>{message.message}
 				</p>
 			{/each}
 		</div>
 		<input
-			class="w-full bg-slate-700 text-gray-300 px-5 rounded-b-3xl outline-none text-xl p-2"
-			placeholder="Type message and hit ENTER to send"
+			class="w-full bg-slate-700 text-gray-300 px-5 rounded-b-3xl outline-none text-lg p-2"
+			placeholder="Type message and hit ENTER"
 			on:keydown={(e) => {
 				if (e.key === 'Enter' && e.target.value !== '') {
 					handleMessageSubmit(e.target);

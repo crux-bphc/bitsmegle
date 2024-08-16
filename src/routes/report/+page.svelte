@@ -19,10 +19,10 @@
 	};
 
 	onMount(() => {
-		console.log('user', $user);
 		const userData = parseCookie(document.cookie).user;
+
 		if (userData) {
-			fetch('/api/users', {
+			fetch('https://server.bitsmegle.live/api/users', {
 				method: 'POST',
 				body: userData,
 				headers: {
@@ -31,9 +31,10 @@
 			})
 				.then((res) => res.json())
 				.then((data) => {
-					user.set(data);
-					userName = $user.name;
-					userEmail = $user.email;
+					// user.set(data);
+					console.log('user', data.data);
+					userName = data.data.name;
+					userEmail = data.data.email;
 				});
 		} else {
 			return goto('/signup');
