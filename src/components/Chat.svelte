@@ -1,15 +1,12 @@
 <script lang="ts">
 	import { socket } from '$lib/stores/socketStore';
-
+	import { remoteUser } from '$lib/stores/userStore';
 	interface Message {
 		sender: string;
 		message: string;
 	}
 
-	let messages: Message[] = [
-		{ sender: 'Samir', message: 'Hi' },
-		{ sender: 'You', message: 'Hello' }
-	];
+	let messages: Message[] = [];
 	$: messages = [...messages];
 
 	const handleMessageSubmit = (target: EventTarget | null) => {
@@ -22,7 +19,7 @@
 	};
 
 	$socket?.on('chat-message-recv', (message: string) => {
-		messages = [{ sender: 'Samir', message }, ...messages];
+		messages = [{ sender: $remoteUser?.name, message }, ...messages];
 	});
 </script>
 
