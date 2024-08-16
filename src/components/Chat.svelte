@@ -23,7 +23,7 @@
 	});
 </script>
 
-<div class="relative h-[150%] w-[48%]">
+<div class="relative h-[150%] w-[48%] hidden md:block">
 	<div
 		class="w-full h-[85%] bg-slate-800 rounded-t-3xl flex flex-col-reverse p-1 py-5 overflow-y-scroll overflow-x-hidden"
 	>

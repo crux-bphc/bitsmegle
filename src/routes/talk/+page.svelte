@@ -16,10 +16,12 @@
 	$currentStatus = 'Idle';
 
 	let currentCallId: string = '';
+	let drawer = writable(true);
 
 	let peerConnection: RTCPeerConnection;
 	import { goto } from '$app/navigation';
 	import { writable } from 'svelte/store';
+	import { draw } from 'svelte/transition';
 
 	let running = true;
 	let rating = writable(false);
@@ -341,7 +343,7 @@
 		{/if}
 	</section>
 
-	<section class="hidden h-[13%] md:flex sm:flex-col md:flex-row items-center justify-evenly">
+	<section class="hidden h-[13%] lg:flex sm:flex-col lg:flex-row items-center justify-evenly">
 		<div class="relative h-[90%] w-[48%] rounded-3xl flex items-start">
 			<div class="w-full p-5 flex justify-center space-x-5 items-center">
 				<div class="text-white bg-gray-800 rounded-lg px-4 py-2">
@@ -368,31 +370,36 @@
 		<Chat />
 	</section>
 
-	{#if false}
-		<MobileChat />
-	{:else}
-		<section class="w-full h-[8%] flex md:hidden justify-center">
-			<div class="text-white bg-gray-800 rounded-lg px-4 py-2 my-auto">
-				Status:
-				<span>{$currentStatus}</span>
-			</div>
+	<MobileChat {drawer} />
+	<section class="w-full h-[8%] flex lg:hidden justify-center">
+		<div class="text-white text-xs bg-gray-800 rounded-lg px-4 py-4 my-auto">
+			Status:
+			<span>{$currentStatus}</span>
+		</div>
 
-			{#if running}
-				<button
-					class="bg-indigo-600 text-white p-2 rounded-lg text-md my-auto ml-4 disabled:opacity-50 {$rating
-						? 'hidden'
-						: ''}"
-					on:click={handleConnect}
-					disabled={$currentStatus[0] == 'F' && running}
-					>{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
-				>
-				<button
-					class="bg-rose-600 text-white py-2 px-4 rounded-md text-md my-auto ml-4 {$rating
-						? 'hidden'
-						: ''}"
-					on:click={running ? closeEverything : start}>{running ? 'End' : 'Start'}</button
-				>
-			{/if}
-		</section>
-	{/if}
+		{#if running}
+			<button
+				class="bg-indigo-600 text-white p-2 rounded-lg text-md my-auto ml-4 disabled:opacity-50 {$rating
+					? 'hidden'
+					: ''}"
+				on:click={handleConnect}
+				disabled={$currentStatus[0] == 'F' && running}
+				>{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}</button
+			>
+			<button
+				class="bg-rose-600 text-white py-2 px-4 rounded-md text-md my-auto ml-4 {$rating
+					? 'hidden'
+					: ''}"
+				on:click={running ? closeEverything : start}>{running ? 'End' : 'Start'}</button
+			>
+			<button
+				class="bg-emerald-600 text-white py-2 px-4 rounded-md text-md my-auto ml-4 {$rating
+					? 'hidden'
+					: ''}"
+				on:click={() => ($drawer = !$drawer)}
+			>
+				<i class="fas fa-comment text-sm"></i>
+			</button>
+		{/if}
+	</section>
 {/if}
