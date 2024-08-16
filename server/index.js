@@ -12,7 +12,7 @@ const SECRET_CLIENT_SECRET = process.env.SECRET_CLIENT_SECRET;
 const client = new MongoClient(DB_URI);
 
 function startMongo() {
-	console.log('Starting MongoDB connection');
+	console.log('Starting MongoDB connection :)');
 	return client.connect();
 }
 
@@ -392,6 +392,20 @@ io.on('connection', (socket) => {
 				socket.emit('remote-user', call.answerMakerUser);
 			} else {
 				socket.emit('remote-user', call.offerMakerUser);
+			}
+		}
+	});
+
+	socket.on('chat-message', (data) => {
+		// find which call the message belongs to
+		console.log('Chat message received', data);
+		let call = calls.find((call) => call.offerMaker === socket || call.answerMaker === socket);
+		if (call) {
+			// send message to the other user
+			if (call.offerMaker === socket) {
+				call.answerMaker.emit('chat-message-recv', data);
+			} else {
+				call.offerMaker.emit('chat-message-recv', data);
 			}
 		}
 	});

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { socket } from '$lib/stores/socketStore';
+
 	interface Message {
 		sender: string;
 		message: string;
@@ -14,7 +16,14 @@
 		const message = (target as HTMLInputElement).value;
 		messages = [{ sender: 'You', message }, ...messages];
 		(target as HTMLInputElement).value = '';
+
+		console.log(message);
+		$socket?.emit('chat-message', message);
 	};
+
+	$socket?.on('chat-message-recv', (message: string) => {
+		messages = [{ sender: 'Samir', message }, ...messages];
+	});
 </script>
 
 <div class="relative h-[150%] w-[48%]">
