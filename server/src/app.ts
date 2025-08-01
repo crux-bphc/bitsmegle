@@ -8,4 +8,4 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/stats', statsRouter);
-app.use('/users', usersRouter);
+app.use('/api/users', usersRouter);
