@@ -2,10 +2,7 @@
 	import { socket } from '$lib/stores/socketStore';
 	import { remoteUser } from '$lib/stores/userStore';
 	import { writable } from 'svelte/store';
-	interface Message {
-		sender: string;
-		message: string;
-	}
+	import type { Message } from '$lib/types';
 
 	export let drawer = writable(false);
 	let messages: Message[] = [];
@@ -20,8 +17,15 @@
 		$socket?.emit('chat-message', message);
 	};
 
+	const handleKeyDown = (e: KeyboardEvent) => {
+		const target = e.target as HTMLInputElement;
+		if (e.key === 'Enter' && target?.value !== '') {
+			handleMessageSubmit(e.target);
+		}
+	};
+
 	$socket?.on('chat-message-recv', (message: string) => {
-		messages = [{ sender: $remoteUser?.name, message }, ...messages];
+		messages = [{ sender: $remoteUser?.name || 'Unknown', message }, ...messages];
 	});
 </script>
 
@@ -65,11 +69,7 @@
 		<input
 			class="w-full bg-slate-700 text-gray-300 px-5 rounded-b-3xl outline-none text-lg p-2"
 			placeholder="Type message and hit ENTER"
-			on:keydown={(e) => {
-				if (e.key === 'Enter' && e.target.value !== '') {
-					handleMessageSubmit(e.target);
-				}
-			}}
+			on:keydown={handleKeyDown}
 		/>
 	</div>
 </div>

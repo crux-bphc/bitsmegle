@@ -2,6 +2,7 @@ import { OAuth2Client } from 'google-auth-library';
 import cookie from 'cookie';
 import { SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, REDIRECT_URI } from '$env/static/private';
 import { users } from '../../../db/users';
+import type { TokenResponse } from '$lib/types';
 
 const getUserData = async (access_token: string) => {
 	const response = await fetch(
@@ -14,7 +15,7 @@ const getUserData = async (access_token: string) => {
 	// convert to titlecase
 	data.name = data.name
 		.split(' ')
-		.map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
+		.map((w: string) => w[0].toUpperCase() + w.substring(1).toLowerCase())
 		.join(' ');
 	return data;
 };
@@ -22,10 +23,19 @@ const getUserData = async (access_token: string) => {
 export const GET = async ({ url }) => {
 	const redirectURL = REDIRECT_URI + '/api/oauth';
 
-	const code = await url.searchParams.get('code');
+	const code = url.searchParams.get('code');
 
 	//console.log('returned state',state)
 	console.log('returned code', code);
+
+	if (!code) {
+		return new Response(null, {
+			status: 400,
+			headers: {
+				Location: '/error' // Redirect to an error page
+			}
+		});
+	}
 
 	try {
 		const oAuth2Client = new OAuth2Client(SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, redirectURL);

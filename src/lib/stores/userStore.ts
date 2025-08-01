@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import type { User } from '$lib/types';
 
-export const user = writable(null); // Initially, the user is not logged in
-export const remoteUser = writable(null); // Initially, remote user is not connected
+export const user = writable<User | null>(null); // Initially, the user is not logged in
+export const remoteUser = writable<User | null>(null); // Initially, remote user is not connected

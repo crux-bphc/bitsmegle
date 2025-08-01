@@ -4,14 +4,23 @@
 	import { currentStatus } from '$lib/stores/statusStore';
 	import { user, remoteUser } from '$lib/stores/userStore';
 	import { localStream, remoteStream } from '$lib/stores/streamStore';
+	import type { User } from '$lib/types';
+	import type { Writable } from 'svelte/store';
 
 	export let who: 'you' | 'them' = 'you';
 
 	$: status = $currentStatus;
+	let currentUser: Writable<User | null>;
 	$: currentUser = who === 'you' ? user : remoteUser;
 	let storeStream = who === 'you' ? localStream : remoteStream;
 	let videoElement: HTMLVideoElement | null;
 	let nameplate: HTMLDivElement | null;
+
+	// email to id
+	const emailToId = (email: string | undefined): string => {
+		if (!email) return '';
+		return email.split('@')[0] + email.split('@')[1][0];
+	};
 
 	const hideNameplateLater = () => {
 		setTimeout(() => {
@@ -41,7 +50,7 @@
 			hideNameplateLater();
 		});
 
-		currentUser.subscribe((user) => {
+		currentUser.subscribe((user: User | null) => {
 			if (user) {
 				videoElement?.classList.remove('hidden');
 			} else {
@@ -49,10 +58,6 @@
 			}
 		});
 	});
-
-	const emailToId = (email: string) => {
-		return email.split('@')[0] + email.split('@')[1][0];
-	};
 </script>
 
 <div

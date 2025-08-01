@@ -20,7 +20,8 @@
 	};
 
 	// email to id
-	const emailToId = (email: string) => {
+	const emailToId = (email: string | undefined): string => {
+		if (!email) return '';
 		return email.split('@')[0] + email.split('@')[1][0];
 	};
 
@@ -63,14 +64,19 @@
 				})
 			);
 
-			$socket?.on('eventFromServer', (message) => {
-				console.log(message);
-			});
+			if ($socket) {
+				// TODO: Fix socket type issue
+				// @ts-ignore
+				$socket.on('eventFromServer', (message: any) => {
+					console.log(message);
+				});
 
-			$socket?.on('userCountChange', (count) => {
-				// console.log('changed to', count);
-				currentOnlineCount = count;
-			});
+				// @ts-ignore
+				$socket.on('userCountChange', (count: number) => {
+					// console.log('changed to', count);
+					currentOnlineCount = count;
+				});
+			}
 		}
 		// setCurrentOnlineCount();
 		// setInterval(() => setCurrentOnlineCount(), 5 * 1000); // Every 5 seconds

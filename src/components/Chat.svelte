@@ -1,10 +1,7 @@
 <script lang="ts">
 	import { socket } from '$lib/stores/socketStore';
 	import { remoteUser } from '$lib/stores/userStore';
-	interface Message {
-		sender: string;
-		message: string;
-	}
+	import type { Message } from '$lib/types';
 
 	let messages: Message[] = [];
 	$: messages = [...messages];
@@ -19,7 +16,7 @@
 	};
 
 	$socket?.on('chat-message-recv', (message: string) => {
-		messages = [{ sender: $remoteUser?.name, message }, ...messages];
+		messages = [{ sender: $remoteUser?.name || 'Unknown', message }, ...messages];
 	});
 </script>
 

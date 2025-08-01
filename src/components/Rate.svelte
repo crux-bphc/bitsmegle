@@ -4,9 +4,8 @@
 
 	import { remoteUser } from '$lib/stores/userStore';
 
-	$: user = remoteUser;
-
-	const getIdFromEmail = (email: string) => {
+	const getIdFromEmail = (email: string | undefined): string => {
+		if (!email) return '';
 		// convert email in the format f20230043@hyderabad.bits-pilani.ac.in to 'f20230043h'
 		const id = email.split('@')[0];
 		const idParts = email.split('@')[1].split('.');
@@ -34,7 +33,7 @@
 			body: JSON.stringify({
 				action,
 				data: parseCookie(document.cookie).user,
-				targetId: getIdFromEmail($user?.email)
+				targetId: getIdFromEmail($remoteUser?.email)
 			})
 		});
 		if (response.status !== 200 && response.status !== 409) {
@@ -55,7 +54,7 @@
 			await updateUser('dislike');
 		}
 
-		dispatch('interaction', { user, button });
+		dispatch('interaction', { user: $remoteUser, button });
 	};
 </script>
 
@@ -64,7 +63,7 @@
 >
 	<div class="flex w-full h-full items-center justify-center bg-gray-900">
 		<div class="flex flex-col text-center">
-			<div class="text-2xl text-white font-semibold mb-4">Rate {$user?.name}</div>
+			<div class="text-2xl text-white font-semibold mb-4">Rate {$remoteUser?.name}</div>
 			<div class="grid grid-row-2 gap-4">
 				<div class="flex justify-center">
 					<button
@@ -90,7 +89,7 @@
 					<button
 						class="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-r-md text-md focus:outline-none"
 					>
-						<a href="/report?email={$user?.email}">
+						<a href="/report?email={$remoteUser?.email}">
 							<i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>Report
 						</a>
 					</button>
