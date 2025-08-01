@@ -6,6 +6,7 @@
 	import logo from '$lib/assets/logo.png';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { PUBLIC_BACKEND_URI, PUBLIC_BACKEND_WS_URI } from '$env/static/public';
 
 	$: currentOnlineCount = 1;
 	const parseCookie = (cookieString: string): Record<string, string> => {
@@ -33,7 +34,7 @@
 
 	const checkExpiration = async (userData: string) => {
 		if (userData && JSON.parse(userData).expiry_date < Date.now()) {
-			let res = await fetch('https://server.bitsmegle.live/api/users', {
+			let res = await fetch(`${PUBLIC_BACKEND_URI}/api/users`, {
 				method: 'POST',
 				body: userData,
 				headers: {
@@ -57,7 +58,7 @@
 				// 		'ngrok-skip-browser-warning': '1'
 				// 	}
 				// })
-				io('wss://server.bitsmegle.live', {
+				io(PUBLIC_BACKEND_WS_URI, {
 					// extraHeaders: {
 					// 	'ngrok-skip-browser-warning': '1'
 					// }

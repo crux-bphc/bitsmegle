@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
+	import { PUBLIC_BACKEND_URI } from '$env/static/public';
 	const dispatch = createEventDispatcher();
 
 	import { remoteUser } from '$lib/stores/userStore';
@@ -25,7 +26,7 @@
 	};
 
 	const updateUser = async (action: 'like' | 'dislike') => {
-		const response = await fetch(`https://server.bitsmegle.live/api/rep`, {
+		const response = await fetch(`${PUBLIC_BACKEND_URI}/api/users/rep`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'

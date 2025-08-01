@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { PUBLIC_BACKEND_URI } from '$env/static/public';
 
 	import { user, remoteUser } from '$lib/stores/userStore';
 	import { socket } from '$lib/stores/socketStore';
@@ -46,7 +47,7 @@
 	onMount(async () => {
 		const userData = parseCookie(document.cookie).user;
 		if (userData) {
-			fetch('https://server.bitsmegle.live/api/users', {
+			fetch(`${PUBLIC_BACKEND_URI}/api/users`, {
 				method: 'POST',
 				body: userData,
 				headers: {

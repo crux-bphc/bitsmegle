@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { user } from '$lib/stores/userStore';
-
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+
+	import { PUBLIC_BACKEND_URI } from '$env/static/public';
 
 	export let form;
 
@@ -22,7 +22,7 @@
 		const userData = parseCookie(document.cookie).user;
 
 		if (userData) {
-			fetch('https://server.bitsmegle.live/api/users', {
+			fetch(`${PUBLIC_BACKEND_URI}/api/users`, {
 				method: 'POST',
 				body: userData,
 				headers: {
@@ -42,13 +42,9 @@
 	});
 
 	let email: string | null, report: string;
-	let userName, userEmail;
+	let userName: string, userEmail: string;
 
 	email = $page.url.searchParams.get('email');
-
-	const submitReport = () => {
-		console.log(email, report);
-	};
 </script>
 
 <div
