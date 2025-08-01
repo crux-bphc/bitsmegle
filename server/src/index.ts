@@ -12,7 +12,12 @@ async function bootstrap() {
 	const httpServer = createServer(app);
 	const io = new IOServer(httpServer, {
 		cors: {
-			origin: ['https://bitsmegle.live', 'https://bitsmegle.vercel.app', 'http://localhost:5173']
+			origin: [
+				'https://bitsmegle.live',
+				'https://bitsmegle.vercel.app',
+				'https://bitsmegle.crux-bphc.com',
+				'http://localhost:5173'
+			]
 		}
 	});
 	signaling(io);
