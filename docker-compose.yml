@@ -1,0 +1,10 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    ports:
+      - '${BACKEND_PORT}:3000' # Expose BACKEND_PORT on host, maps to 3000 inside container
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
