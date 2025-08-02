@@ -54,8 +54,6 @@
 		if ($socket === null) {
 			socket.set(
 				io(PUBLIC_BACKEND_WS_URI, {
-					transports: ['websocket']
-
 					// extraHeaders: {
 					// 	'ngrok-skip-browser-warning': '1'
 					// }
