@@ -22,7 +22,6 @@
 	let peerConnection: RTCPeerConnection;
 	import { goto } from '$app/navigation';
 	import { writable } from 'svelte/store';
-	import { draw } from 'svelte/transition';
 
 	let running = true;
 	let rating = writable(false);
@@ -41,6 +40,7 @@
 			if (e.name === 'NotAllowedError') {
 				$currentStatus = 'Permission Denied';
 			}
+			throw e;
 		}
 	};
 
