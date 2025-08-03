@@ -104,10 +104,12 @@ export default function signaling(io: Server) {
 		});
 
 		socket.on('chat-message', (msg: any) => {
-			console.log('Chat message received', msg);
 			const call = state.calls.find((c) => c.offerMaker === socket || c.answerMaker === socket);
 			if (call) {
 				const target = call.offerMaker === socket ? call.answerMaker : call.offerMaker;
+				const senderUser = call.offerMaker === target ? call.answerMakerUser : call.offerMakerUser;
+				const targetUser = call.offerMaker === target ? call.offerMakerUser : call.answerMakerUser;
+				console.log('Message received', senderUser, targetUser);
 				target.emit('chat-message-recv', msg);
 			}
 		});
