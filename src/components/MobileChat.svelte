@@ -33,13 +33,13 @@
 <div
 	id="drawer-example"
 	class="fixed top-0 left-0 z-40 h-full p-4 overflow-y-auto transition-transform {$drawer &&
-		'-translate-x-full'} bg-white w-[85%] dark:bg-gray-900 opacity-[98%]"
+		'-translate-x-full'} bg-white w-[85%] dark:bg-slate-900 opacity-[98%]"
 	tabindex="-1"
 	aria-labelledby="drawer-label"
 >
 	<div class="relative h-full">
 		<button
-			class="absolute top-2 right-2 p-2 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+			class="absolute top-2 right-2 p-2 rounded-full bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200"
 			on:click={() => drawer.set(!$drawer)}
 		>
 			<svg
@@ -58,16 +58,16 @@
 			</svg>
 		</button>
 		<div
-			class="w-full h-[90%] bg-slate-800 rounded-t-3xl flex flex-col-reverse p-1 py-5 overflow-y-scroll overflow-x-hidden"
+			class="w-full h-[90%] bg-slate-900 rounded-t-3xl flex flex-col-reverse px-2 py-2 overflow-y-scroll wrap-break-anywhere"
 		>
 			{#each messages as message}
-				<p class="w-full text-lg p-3 text-gray-300">
+				<p class="w-full text-lg p-1 text-gray-300">
 					<span class="text-blue-300">{message.sender}: </span>{message.message}
 				</p>
 			{/each}
 		</div>
 		<input
-			class="w-full bg-slate-700 text-gray-300 px-5 rounded-b-3xl outline-none text-lg p-2"
+			class="w-full bg-slate-800 text-gray-300 px-5 rounded-b-3xl outline-none text-lg p-2"
 			placeholder="Type message and hit ENTER"
 			on:keydown={handleKeyDown}
 		/>

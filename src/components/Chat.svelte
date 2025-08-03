@@ -25,7 +25,7 @@
 
 <div class="relative h-[150%] w-[48%] hidden md:block">
 	<div
-		class="w-full h-[85%] bg-slate-900 rounded-tl-3xl rounded-tr-none flex flex-col-reverse p-2 py-5 overflow-y-scroll overflow-x-hidden"
+		class="w-full h-[85%] bg-slate-900 rounded-tl-3xl rounded-tr-none flex flex-col-reverse p-2 py-5 overflow-y-scroll wrap-break-anywhere"
 	>
 		{#each messages as message}
 			<p class="w-full h-[20%] p-3 text-gray-300">
