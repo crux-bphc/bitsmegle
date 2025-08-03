@@ -109,7 +109,7 @@ export default function signaling(io: Server) {
 				const target = call.offerMaker === socket ? call.answerMaker : call.offerMaker;
 				const senderUser = call.offerMaker === target ? call.answerMakerUser : call.offerMakerUser;
 				const targetUser = call.offerMaker === target ? call.offerMakerUser : call.answerMakerUser;
-				console.log('Message received', senderUser, targetUser);
+				console.log('Message received', senderUser.name, targetUser.name, msg);
 				target.emit('chat-message-recv', msg);
 			}
 		});
