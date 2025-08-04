@@ -25,7 +25,7 @@
 
 <div class="relative h-[150%] w-[48%] hidden md:block">
 	<div
-		class="w-full h-[85%] bg-slate-900 rounded-tl-3xl rounded-tr-none flex flex-col-reverse p-2 py-5 overflow-y-scroll wrap-break-anywhere"
+		class="w-full h-full bg-slate-900 rounded-3xl rounded-tr-none flex flex-col-reverse p-2 py-14 gap-1 overflow-y-scroll wrap-break-anywhere"
 	>
 		{#each messages as message}
 			<p class="w-full h-[20%] p-3 text-gray-300">
@@ -34,7 +34,7 @@
 		{/each}
 	</div>
 	<input
-		class="w-full bg-slate-800 text-gray-300 px-5 rounded-b-3xl outline-none text-sm p-1"
+		class="w-[97%] left-1/2 -translate-x-1/2 absolute bottom-[9px] bg-slate-800 text-gray-300 px-5 rounded-3xl outline-none text-sm p-1"
 		placeholder="Type message and hit ENTER to send"
 		on:keydown={(e) => {
 			if (e.key === 'Enter') {

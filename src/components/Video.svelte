@@ -110,13 +110,10 @@
 			<track kind="captions" />
 		</video> -->
 
-		{#if status[0] === 'F'}
-			<Loader />
-		{:else}
-			<div class="bg-slate-900 w-full h-full flex items-center justify-center">
+		<Loader paused={status[0] !== 'F'} />
+		<!-- <div class="bg-slate-900 w-full h-full flex items-center justify-center">
 				<img src="loader.png" alt="Loader" class="scale-[55%]" />
-			</div>
-		{/if}
+			</div> -->
 	{/if}
 </div>
 
