@@ -14,7 +14,7 @@
 		const hours = now.getHours();
 
 		// Show only between 10 PM (22) and 12 AM (0)
-		showGetStarted = hours === 22 || hours === 23;
+		showGetStarted = true; // hours === 22 || hours === 23; TODO: enable this before launch
 	});
 </script>
 
