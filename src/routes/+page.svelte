@@ -35,11 +35,12 @@
 		<div class="text-gray-400 text-3xl mt-4 mb-6">Powered by CRUx</div>
 
 		{#if showGetStarted}
-			<button
-				class="px-6 py-3 bg-gray-200 text-black font-semibold rounded-lg hover:bg-gray-500 transition duration-300"
+			<a
+				class="inline-block px-6 py-3 bg-gray-200 text-black font-semibold rounded-lg hover:bg-gray-500 transition duration-300"
+				href="/{!$user ? 'signup' : 'talk'}"
 			>
-				<a href="/{!$user ? 'signup' : 'talk'}">Get Started</a>
-			</button>
+				Get Started
+			</a>
 		{:else}
 			<div class="text-white text-3xl tagline font-serif m-2">
 				Go touch grass. We’ll see you at 10pm.
