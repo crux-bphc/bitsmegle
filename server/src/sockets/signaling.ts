@@ -86,10 +86,16 @@ export default function signaling(io: Server) {
 		socket.on('call-accepted', (data: any) => {
 			console.log('Call Accepted');
 			const call = state.calls.find((c) => c.callId === data.callId);
-			if (call) {
-				call.answerMaker = socket;
-				socket.emit('call-data', JSON.stringify({ callId: data.callId, offer: call.offer }));
-			}
+			if (!call) return;
+
+			call.answerMaker = socket;
+
+			// stamp the callId onto both sockets
+			call.offerMaker.data.currentCallId = call.callId;
+			socket.data.currentCallId = call.callId;
+
+			// send the offer to the answer side
+			socket.emit('call-data', JSON.stringify({ callId: data.callId, offer: call.offer }));
 		});
 
 		socket.on('who-is-remote', (payload: any) => {
@@ -104,14 +110,27 @@ export default function signaling(io: Server) {
 		});
 
 		socket.on('chat-message', (msg: any) => {
-			const call = state.calls.find((c) => c.offerMaker === socket || c.answerMaker === socket);
-			if (call) {
-				const target = call.offerMaker === socket ? call.answerMaker : call.offerMaker;
-				const senderUser = call.offerMaker === target ? call.answerMakerUser : call.offerMakerUser;
-				const targetUser = call.offerMaker === target ? call.offerMakerUser : call.answerMakerUser;
-				console.log('Message received', senderUser.name, targetUser.name, msg);
-				target.emit('chat-message-recv', msg);
+			const callId = socket.data.currentCallId as string | undefined;
+			if (!callId) {
+				console.warn('Dropping chat-message: no active call for socket', socket.id);
+				return;
 			}
+
+			const call = state.calls.find(
+				(c) => c.callId === callId && c.paired && c.answerMaker !== null
+			);
+			if (!call) {
+				console.warn('Dropping chat-message: call not found or not paired', callId);
+				return;
+			}
+
+			const isOfferer = call.offerMaker === socket;
+			const sender = isOfferer ? call.offerMakerUser : call.answerMakerUser!;
+			const target = isOfferer ? call.answerMakerUser : call.offerMakerUser;
+			const targetSock = isOfferer ? call.answerMaker! : call.offerMaker;
+
+			console.log(`Message from ${sender.name} to ${target.name}:`, msg);
+			targetSock.emit('chat-message-recv', msg);
 		});
 	});
 }
