@@ -42,7 +42,7 @@
 				Get Started
 			</a>
 		{:else}
-			<div class="text-white text-3xl tagline font-serif m-2">
+			<div class="text-white text-2xl tagline font-serif m-2">
 				Go touch grass. We’ll see you at 10pm.
 			</div>
 		{/if}
