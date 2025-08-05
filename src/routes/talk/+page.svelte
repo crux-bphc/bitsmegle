@@ -294,6 +294,7 @@
 	};
 
 	const endWebRTC = async (rate: boolean = true) => {
+		// TODO: add a call-ended event on the socket server
 		await peerConnection.close();
 
 		if (rate && $remoteUser) {
@@ -331,10 +332,10 @@
 	};
 </script>
 
-<Modal on:close={handleModalClose} />
+<!-- <Modal on:close={handleModalClose} /> -->
 {#if $user}
 	<section
-		class="h-[85%] land:h-[75%] land:flex-row lg:h-[75%] flex flex-col lg:flex-row items-center justify-evenly"
+		class="h-[80%] land:h-[75%] land:flex-row lg:h-[75%] flex flex-col lg:flex-row items-center justify-start gap-8 py-8"
 	>
 		<Video who="you" />
 		{#if $rating}
@@ -344,7 +345,7 @@
 		{/if}
 	</section>
 
-	<section class="hidden h-[13%] lg:flex sm:flex-col lg:flex-row items-center justify-evenly">
+	<!-- <section class="hidden h-[13%] lg:flex sm:flex-col lg:flex-row items-center justify-evenly">
 		<div class="relative h-[90%] w-[48%] rounded-3xl flex items-start">
 			<div class="w-full p-5 flex justify-center space-x-5 items-center">
 				<div class="text-white bg-gray-800 rounded-lg px-4 py-2">
@@ -369,10 +370,10 @@
 		</div>
 
 		<Chat />
-	</section>
+	</section> -->
 
 	<MobileChat {drawer} />
-	<section class="w-full h-[8%] flex lg:hidden justify-center">
+	<section class="w-full h-[8%] flex justify-center">
 		<div class="text-white text-xs bg-gray-800 rounded-lg px-4 py-4 my-auto">
 			Status:
 			<span>{$currentStatus}</span>

@@ -23,7 +23,7 @@
 	});
 </script>
 
-<div class="relative h-[150%] w-[48%] hidden md:block">
+<div class="relative h-[150%] w-[48%] hidden">
 	<div
 		class="w-full h-full bg-slate-900 rounded-3xl rounded-tr-none flex flex-col-reverse p-2 py-14 gap-1 overflow-y-scroll wrap-break-anywhere"
 	>

@@ -67,7 +67,7 @@
 			{/each}
 		</div>
 		<input
-			class="w-full bg-slate-800 text-gray-300 px-5 rounded-b-3xl outline-none text-lg p-2"
+			class="w-full bg-slate-800 text-gray-300 px-5 rounded-3xl absolute bottom-4 outline-none text-lg p-2"
 			placeholder="Type message and hit ENTER"
 			on:keydown={handleKeyDown}
 		/>
