@@ -332,10 +332,10 @@
 	};
 </script>
 
-<!-- <Modal on:close={handleModalClose} /> -->
+<Modal on:close={handleModalClose} />
 {#if $user}
 	<section
-		class="h-[80%] land:h-[75%] land:flex-row lg:h-[75%] flex flex-col lg:flex-row items-center justify-start gap-8 py-8"
+		class="h-[80%] land:h-[75%] land:flex-row lg:h-[75%] flex flex-col lg:flex-row items-center justify-start gap-5 py-5"
 	>
 		<Video who="you" />
 		{#if $rating}
