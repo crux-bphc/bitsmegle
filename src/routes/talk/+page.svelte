@@ -14,7 +14,6 @@
 	import MobileChat from '../../components/MobileChat.svelte';
 
 	import { currentStatus } from '$lib/stores/statusStore';
-	$currentStatus = 'Idle';
 
 	let currentCallId: string = '';
 	let drawer = writable(true);
