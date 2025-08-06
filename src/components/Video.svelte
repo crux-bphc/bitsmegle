@@ -68,7 +68,9 @@
 	class="relative h-[50%] w-[90%] land:h-[85%] land:w-[48%] lg:h-[90%] lg:w-[48%] rounded-3xl overflow-hidden"
 >
 	<div
-		class="backdrop-blur-sm bg-slate-950/40 absolute flex flex-col rounded-lg left-0 bottom-0 z-10 m-3 px-3 py-2"
+		class="backdrop-blur-sm {$currentUser
+			? 'bg-slate-950/40'
+			: ''} absolute flex flex-col rounded-lg left-0 bottom-0 z-10 m-3 px-3 py-2"
 		bind:this={nameplate}
 	>
 		{#if $currentUser}
