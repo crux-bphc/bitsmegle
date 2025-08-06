@@ -6,7 +6,6 @@
 	import { socket } from '$lib/stores/socketStore';
 
 	import Video from '../../components/Video.svelte';
-	import Chat from '../../components/Chat.svelte';
 	import Rate from '../../components/Rate.svelte';
 	import Modal from '../../components/Modal.svelte';
 
@@ -16,7 +15,22 @@
 	import { currentStatus } from '$lib/stores/statusStore';
 
 	let currentCallId: string = '';
-	let drawer = writable(true);
+	let drawer = writable(false);
+	let hasPing = false;
+	let pingCount = 0;
+
+	$: if ($drawer) {
+		hasPing = false;
+		pingCount = 0;
+	}
+
+	function handleNewMessage() {
+		// only ping if the drawer is closed
+		if (!$drawer) {
+			hasPing = true;
+			pingCount += 1;
+		}
+	}
 
 	let peerConnection: RTCPeerConnection;
 	import { goto } from '$app/navigation';
@@ -330,7 +344,7 @@
 		<Chat />
 	</section> -->
 
-	<MobileChat {drawer} />
+	<MobileChat {drawer} on:newMessage={handleNewMessage} />
 	<section
 		class="w-full px-4 flex flex-col md:flex-row md:justify-center md:items-center text-base"
 	>
@@ -359,12 +373,18 @@
 				>
 					{running ? 'End' : 'Start'}
 				</button>
-
 				<button
-					class="bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center justify-center h-full"
+					class="relative bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center justify-center h-full"
 					on:click={() => ($drawer = !$drawer)}
 				>
-					<i class="fas fa-comment text-sm"></i>
+					<i class="fas fa-comment text-base"></i>
+					{#if hasPing}
+						<!-- little red dot, absolutely positioned inside its parent button -->
+						<span
+							class="absolute top-1 right-1 h-6 w-6 bg-red-500 rounded-full
+             translate-x-1/2 -translate-y-1/2">{pingCount}</span
+						>
+					{/if}
 				</button>
 			</div>
 		{/if}
