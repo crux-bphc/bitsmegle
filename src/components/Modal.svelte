@@ -19,7 +19,7 @@
 
 <!-- Modal content -->
 <div
-	class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-700 p-6 rounded-md shadow-lg z-50 min-w-[25%] md:w-[40%] w-[90%]"
+	class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-800 p-6 rounded-md shadow-lg z-50 min-w-[25%] md:w-[40%] w-[90%]"
 	style="display: {isOpen ? 'block' : 'none'};"
 >
 	<!-- Title -->
@@ -30,6 +30,7 @@
 		<p>📱 For optimal performance:</p>
 		<ul class="list-disc ml-10 mb-6">
 			<li class="font-semibold">Use mobile data instead of LAN.</li>
+			<li class="font-semibold">Use warp if on LAN.</li>
 		</ul>
 		<p class="text-left">🐛 In case you encounter bugs, try refreshing.</p>
 		<p class="text-left ml-6 mt-2">
