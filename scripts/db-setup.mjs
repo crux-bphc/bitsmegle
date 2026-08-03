@@ -7,15 +7,16 @@
 // Safe to re-run: index creation and seeding are both idempotent.
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
+import { databaseNameFromUri } from './db-name.mjs';
 
 dotenv.config();
 
 const DB_URI = process.env.DB_URI || 'mongodb://127.0.0.1:27017/bitsmegle';
 const seed = process.argv.includes('--seed');
 
-// The backend pins the database name (server/src/config/mongo.ts), the frontend
-// takes it from the URI path. Fall back to the same name so both agree.
-const dbName = new URL(DB_URI).pathname.replace(/^\//, '') || 'bitsmegle';
+// Both the frontend and the backend take the database name from the URI, so
+// this script has to resolve it the same way.
+const dbName = databaseNameFromUri(DB_URI);
 
 const SAMPLE_USERS = [
 	{

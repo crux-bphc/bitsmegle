@@ -4,10 +4,12 @@
 //   node scripts/db-smoke-test.mjs
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
+import { databaseNameFromUri } from './db-name.mjs';
 
 dotenv.config();
 
 const DB_URI = process.env.DB_URI || 'mongodb://127.0.0.1:27017/bitsmegle';
+const DB_NAME = databaseNameFromUri(DB_URI);
 const TEST_ID = '_smoketest_f00000000x';
 
 let failures = 0;
@@ -27,17 +29,19 @@ try {
 	await client.connect();
 
 	// The frontend calls client.db() with no argument (src/db/mongo.ts), so the
-	// database name has to come from the URI path.
+	// database name has to come from the URI path. The backend resolves the same
+	// name from DB_URI (server/src/config/mongo.ts) — this asserts they agree,
+	// which is what lets each worktree point at its own database.
 	const dbFromUri = client.db();
 	check(
-		'DB_URI carries a database name',
-		dbFromUri.databaseName === 'bitsmegle',
-		`client.db() resolved to "${dbFromUri.databaseName}", expected "bitsmegle"`
+		'frontend and backend resolve the same database name',
+		dbFromUri.databaseName === DB_NAME,
+		`client.db() resolved to "${dbFromUri.databaseName}", expected "${DB_NAME}"`
 	);
 
-	// The backend pins the name explicitly (server/src/config/mongo.ts).
-	const db = client.db('bitsmegle');
+	const db = client.db(DB_NAME);
 	const users = db.collection('users');
+	console.log(`  INFO  using database "${DB_NAME}"`);
 
 	const ping = await db.admin().ping();
 	check('server responds to ping', ping.ok === 1);
