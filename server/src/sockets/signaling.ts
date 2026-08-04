@@ -1,13 +1,42 @@
 import { Server, Socket } from 'socket.io';
 import { state } from '../services/realtime';
 import type { Call } from '../services/realtime';
+import { identify } from '../services/identity';
+import type { Identity } from '../services/identity';
+import { recordPairing } from '../services/pairings';
 
 export default function signaling(io: Server) {
+	// Resolve the connecting socket's identity from its access token, server-side.
+	// Anonymous sockets are still allowed — they keep the online counter working on
+	// public pages — but they cannot take part in any call.
+	io.use(async (socket: Socket, next) => {
+		const token = socket.handshake.auth?.token;
+		if (typeof token === 'string' && token.length > 0) {
+			try {
+				socket.data.user = await identify(token);
+			} catch (err) {
+				console.warn(`Socket ${socket.id} presented an invalid access token`);
+			}
+		}
+		next();
+	});
+
 	io.on('connection', (socket: Socket) => {
 		state.userCount += 1;
 		state.stats.totalUsersConnected += 1;
 		state.stats.maxActiveUserCount = Math.max(state.stats.maxActiveUserCount, state.userCount);
 		io.sockets.emit('userCountChange', state.userCount);
+
+		/** The verified identity of this socket, or null if it is anonymous. */
+		const requireUser = (event: string): Identity | null => {
+			const me = socket.data.user as Identity | undefined;
+			if (!me) {
+				console.warn(`Dropping ${event}: socket ${socket.id} is not authenticated`);
+				socket.emit('auth-required', event);
+				return null;
+			}
+			return me;
+		};
 
 		socket.on('disconnect', () => {
 			state.userCount -= 1;
@@ -18,34 +47,43 @@ export default function signaling(io: Server) {
 			io.sockets.emit('userCountChange', state.userCount);
 		});
 
-		socket.on('looking-for-somebody', (userInfo: any) => {
-			console.log(`${userInfo.name} is looking for somebody`);
-			// find an unpaired offer
+		socket.on('looking-for-somebody', () => {
+			const me = requireUser('looking-for-somebody');
+			if (!me) return;
+
+			console.log(`${me.name} is looking for somebody`);
+			// find an unpaired offer from somebody who is not us
 			const call = state.calls.find(
-				(c: Call) => c.answer === null && c.offerMaker !== socket && !c.paired
+				(c: Call) =>
+					c.answer === null && c.offerMaker !== socket && !c.paired && c.offerMakerUser.id !== me.id
 			);
 
 			if (call) {
-				console.log(`${userInfo.name} is paired with ${call.offerMakerUser.name}`);
+				console.log(`${me.name} is paired with ${call.offerMakerUser.name}`);
 				state.stats.totalCallsPaired += 1;
 				call.paired = true;
-				call.answerMakerUser = userInfo;
+				call.pendingAnswerMaker = socket;
+				call.answerMakerUser = me;
 				socket.emit('call-found', call.callId);
 			} else {
-				console.log(`Found no one to pair with ${userInfo.name} at the moment`);
+				console.log(`Found no one to pair with ${me.name} at the moment`);
 				socket.emit('call-not-found', null);
 				state.stats.totalCallsMade += 1;
 			}
 		});
 
 		socket.on('make-offer', (data: any) => {
+			const me = requireUser('make-offer');
+			if (!me) return;
+
 			state.calls.push({
 				callId: data.callId,
 				offer: data.offer,
 				offerMaker: socket,
-				offerMakerUser: data.user,
+				offerMakerUser: me,
 				answer: null,
 				answerMaker: null,
+				pendingAnswerMaker: null,
 				answerMakerUser: null,
 				offerCandidates: [],
 				answerCandidates: [],
@@ -84,28 +122,46 @@ export default function signaling(io: Server) {
 		});
 
 		socket.on('call-accepted', (data: any) => {
-			console.log('Call Accepted');
-			const call = state.calls.find((c) => c.callId === data.callId);
+			const me = requireUser('call-accepted');
+			if (!me) return;
+
+			const call = state.calls.find((c) => c.callId === data?.callId);
 			if (!call) return;
 
+			// Only the socket this call was actually matched with may accept it.
+			// Without this, anyone who learns a callId could take over the answer
+			// side and manufacture a pairing they were never part of.
+			if (call.pendingAnswerMaker !== socket) {
+				console.warn(`Dropping call-accepted from non-participant socket ${socket.id}`);
+				return;
+			}
+			if (call.answerMaker) return; // already accepted
+
+			console.log('Call Accepted');
 			call.answerMaker = socket;
 
 			// stamp the callId onto both sockets
 			call.offerMaker.data.currentCallId = call.callId;
 			socket.data.currentCallId = call.callId;
 
+			// Both sides are now verified and connected to each other, which is what
+			// entitles each of them to rate the other exactly once.
+			recordPairing(call.callId, call.offerMakerUser.id, me.id);
+
 			// send the offer to the answer side
 			socket.emit('call-data', JSON.stringify({ callId: data.callId, offer: call.offer }));
 		});
 
 		socket.on('who-is-remote', (payload: any) => {
-			const call = state.calls.find((c) => c.callId === payload.callId);
-			if (call) {
-				if (call.offerMaker === socket) {
-					socket.emit('remote-user', call.answerMakerUser);
-				} else {
-					socket.emit('remote-user', call.offerMakerUser);
-				}
+			const call = state.calls.find((c) => c.callId === payload?.callId);
+			if (!call) return;
+
+			if (call.offerMaker === socket) {
+				socket.emit('remote-user', call.answerMakerUser);
+			} else if (call.answerMaker === socket || call.pendingAnswerMaker === socket) {
+				socket.emit('remote-user', call.offerMakerUser);
+			} else {
+				console.warn(`Dropping who-is-remote from non-participant socket ${socket.id}`);
 			}
 		});
 
@@ -126,7 +182,7 @@ export default function signaling(io: Server) {
 
 			const isOfferer = call.offerMaker === socket;
 			const sender = isOfferer ? call.offerMakerUser : call.answerMakerUser!;
-			const target = isOfferer ? call.answerMakerUser : call.offerMakerUser;
+			const target = isOfferer ? call.answerMakerUser! : call.offerMakerUser;
 			const targetSock = isOfferer ? call.answerMaker! : call.offerMaker;
 
 			console.log(`Message from ${sender.name} to ${target.name}:`, msg);

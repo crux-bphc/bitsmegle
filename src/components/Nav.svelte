@@ -32,7 +32,21 @@
 	// 		.then((data) => (currentOnlineCount = data.count));
 	// };
 
-	const checkExpiration = async (userData: string) => {
+	// The backend derives our identity from this token during the socket handshake,
+	// so that signalling — and therefore who is allowed to rate whom — cannot be
+	// spoofed by a patched client.
+	const accessTokenFromCookie = (): string => {
+		const userData = parseCookie(document.cookie).user;
+		if (!userData) return '';
+		try {
+			return JSON.parse(userData).access_token ?? '';
+		} catch {
+			return '';
+		}
+	};
+
+	const checkExpiration = async () => {
+		const userData = parseCookie(document.cookie).user;
 		if (userData && JSON.parse(userData).expiry_date < Date.now()) {
 			let res = await fetch(`${PUBLIC_BACKEND_URI}/api/users`, {
 				method: 'POST',
@@ -46,6 +60,11 @@
 			let cookie = data.cookie;
 			if (cookie) {
 				document.cookie = cookie;
+				// Re-handshake so the socket is authenticated with the fresh token.
+				if ($socket) {
+					$socket.auth = { token: accessTokenFromCookie() };
+					$socket.disconnect().connect();
+				}
 			}
 		}
 	};
@@ -54,6 +73,7 @@
 		if ($socket === null) {
 			socket.set(
 				io(PUBLIC_BACKEND_WS_URI, {
+					auth: { token: accessTokenFromCookie() }
 					// extraHeaders: {
 					// 	'ngrok-skip-browser-warning': '1'
 					// }
@@ -72,12 +92,17 @@
 					// console.log('changed to', count);
 					currentOnlineCount = count;
 				});
+
+				// @ts-expect-error same socket typing issue as the handlers above
+				$socket.on('auth-required', (event: string) => {
+					console.error(`Backend rejected "${event}": socket is not signed in`);
+				});
 			}
 		}
 		// setCurrentOnlineCount();
 		// setInterval(() => setCurrentOnlineCount(), 5 * 1000); // Every 5 seconds
-		const userData = parseCookie(document.cookie).user;
-		setInterval(() => checkExpiration(userData), 10 * 60 * 1000); // Every 10 minutes
+		const interval = setInterval(() => checkExpiration(), 10 * 60 * 1000); // Every 10 minutes
+		return () => clearInterval(interval);
 	});
 </script>
 

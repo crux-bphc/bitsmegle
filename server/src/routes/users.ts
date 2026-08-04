@@ -4,54 +4,10 @@ import cookie from 'cookie';
 import { users } from '../config/mongo';
 import { SECRET_CLIENT_ID, SECRET_CLIENT_SECRET } from '../config/env';
 import { state } from '../services/realtime';
-import type { User, TokenResponse } from '../models/User';
+import { getUserData, identify } from '../services/identity';
+import { claimRating } from '../services/pairings';
+import type { TokenResponse } from '../models/User';
 const router = Router();
-
-/**
- * Converts email (f20230043@hyderabad.bits-pilani.ac.in) → 'f20230043h'
- */
-function getIdFromEmail(email: string): string {
-	const [local, domain] = email.split('@');
-	const campus = domain.split('.')[0];
-	return `${local}${campus.charAt(0)}`;
-}
-
-/**
- * Ensures a user document exists in Mongo
- */
-async function addUserToDB(user: User): Promise<void> {
-	const id = getIdFromEmail(user.email);
-	const existing = await users.findOne({ id });
-	if (!existing) {
-		await users.insertOne({
-			id,
-			name: user.name,
-			email: user.email,
-			picture: user.picture,
-			reputation: 0
-		});
-	}
-}
-
-/**
- * Fetches Google userinfo and ensures DB entry
- */
-async function getUserData(accessToken: string): Promise<User> {
-	const resp = await fetch(
-		`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`
-	);
-	const data = await resp.json();
-	if (!data.name) throw new Error('Failed to fetch user data');
-
-	// Title-case name
-	data.name = data.name
-		.split(' ')
-		.map((w: string) => w[0].toUpperCase() + w.slice(1).toLowerCase())
-		.join(' ');
-
-	await addUserToDB(data as User);
-	return data as User;
-}
 
 /**
  * Refreshes Google OAuth token
@@ -103,25 +59,55 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // POST /rep
-// Like/dislike another user
+// Like/dislike a user you were actually just in a call with.
 router.post('/rep', async (req: Request, res: Response) => {
+	let body: any;
+	let credentials: any;
 	try {
-		const { data, targetId, action } =
-			typeof req.body.data === 'string' ? JSON.parse(req.body) : req.body;
+		body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+		// The client stores the token response as a JSON string in a cookie and
+		// forwards it verbatim, so `data` arrives as a string, not an object.
+		credentials = typeof body?.data === 'string' ? JSON.parse(body.data) : body?.data;
+	} catch {
+		return res.status(400).send('Malformed request body');
+	}
 
-		if (typeof data.access_token !== 'string') return res.status(400).send('Missing access token');
+	const { targetId, action } = body ?? {};
 
-		const user = await getUserData(data.access_token);
-		const userId = getIdFromEmail(user.email);
+	if (action !== 'like' && action !== 'dislike')
+		return res.status(400).send("action must be 'like' or 'dislike'");
+	if (typeof targetId !== 'string' || targetId.length === 0)
+		return res.status(400).send('Missing targetId');
+	if (typeof credentials?.access_token !== 'string')
+		return res.status(400).send('Missing access token');
+
+	// Who the caller is comes from the verified token, never from the body.
+	let userId: string;
+	try {
+		userId = (await identify(credentials.access_token)).id;
+	} catch (err) {
+		console.error(err);
+		return res.status(401).send('Authentication failed');
+	}
+
+	if (userId === targetId) return res.status(403).send('Cannot rate yourself');
+
+	try {
 		state.interactions[userId] = state.interactions[userId] || [];
-
 		if (state.interactions[userId].includes(targetId))
 			return res.status(409).send('Already rated today');
 
-		state.interactions[userId].push(targetId);
-		const delta = action === 'like' ? 3 : -1;
-		await users.updateOne({ id: targetId }, { $inc: { reputation: delta } });
+		// The caller must actually have been paired with the target by this server.
+		const claim = claimRating(userId, targetId);
+		if (claim === 'not-paired')
+			return res.status(403).send('You have not been in a call with this user');
+		if (claim === 'already-rated') return res.status(409).send('Already rated this call');
 
+		const delta = action === 'like' ? 3 : -1;
+		const result = await users.updateOne({ id: targetId }, { $inc: { reputation: delta } });
+		if (result.matchedCount === 0) return res.status(404).send('No such user');
+
+		state.interactions[userId].push(targetId);
 		return res.status(200).send('Success');
 	} catch (err) {
 		console.error(err);
