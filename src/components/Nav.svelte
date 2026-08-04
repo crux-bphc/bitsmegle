@@ -32,8 +32,12 @@
 	// 		.then((data) => (currentOnlineCount = data.count));
 	// };
 
-	const checkExpiration = async (userData: string) => {
-		if (userData && JSON.parse(userData).expiry_date < Date.now()) {
+	const checkExpiration = async () => {
+		// re-read every tick: a successful refresh rewrites the cookie
+		const userData = parseCookie(document.cookie).user;
+		if (!userData || JSON.parse(userData).expiry_date >= Date.now()) return;
+
+		try {
 			let res = await fetch(`${PUBLIC_BACKEND_URI}/api/users`, {
 				method: 'POST',
 				body: userData,
@@ -42,11 +46,15 @@
 				}
 			});
 
+			if (!res.ok) return goto('/signup');
+
 			let data = await res.json();
 			let cookie = data.cookie;
 			if (cookie) {
 				document.cookie = cookie;
 			}
+		} catch (err) {
+			console.error(err);
 		}
 	};
 
@@ -76,8 +84,7 @@
 		}
 		// setCurrentOnlineCount();
 		// setInterval(() => setCurrentOnlineCount(), 5 * 1000); // Every 5 seconds
-		const userData = parseCookie(document.cookie).user;
-		setInterval(() => checkExpiration(userData), 10 * 60 * 1000); // Every 10 minutes
+		setInterval(() => checkExpiration(), 10 * 60 * 1000); // Every 10 minutes
 	});
 </script>
 

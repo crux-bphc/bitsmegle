@@ -77,11 +77,15 @@ router.post('/', async (req: Request, res: Response) => {
 	try {
 		const payload = typeof req.body.access_token === 'string' ? req.body : JSON.parse(req.body);
 
-		let user = await getUserData(payload.access_token);
+		let user: User;
 		let cookieHeader: string | null = null;
 
-		// If expired, refresh
-		if (!user.name) {
+		try {
+			user = await getUserData(payload.access_token);
+		} catch (err) {
+			// Google rejected the access token — retry once with the stored refresh token
+			if (typeof payload.refresh_token !== 'string') throw err;
+
 			const tokens = await refreshToken(payload.refresh_token);
 			tokens.refresh_token = payload.refresh_token;
 			tokens.expiry_date = Date.now() + tokens.expires_in * 1000;
