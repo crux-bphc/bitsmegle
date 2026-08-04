@@ -4,23 +4,6 @@ import { SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, REDIRECT_URI } from '$env/stati
 import { users } from '../../../db/users';
 import type { TokenResponse } from '$lib/types';
 
-const getUserData = async (access_token: string) => {
-	const response = await fetch(
-		`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
-	);
-	const data = await response.json();
-	if (data.name === undefined) {
-		return { error: 'Failed to get user data' };
-	}
-	// convert to titlecase
-	data.name = data.name
-		.split(' ')
-		.filter((w: string) => w.length > 0)
-		.map((w: string) => w[0].toUpperCase() + w.substring(1).toLowerCase())
-		.join(' ');
-	return data;
-};
-
 export const GET = async ({ url }) => {
 	const redirectURL = REDIRECT_URI + '/api/oauth';
 
@@ -47,7 +30,6 @@ export const GET = async ({ url }) => {
 		const user = oAuth2Client.credentials;
 		console.log('credentials', user);
 
-		// let data = await getUserData(user.access_token);
 		let userData = JSON.stringify(user);
 
 		// Serialize your user data or a session token into a cookie
