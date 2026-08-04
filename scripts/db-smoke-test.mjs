@@ -91,9 +91,11 @@ try {
 	const deleted = await users.deleteOne({ id: TEST_ID });
 	check('deleteOne cleans up', deleted.deletedCount === 1);
 
-	// Data has to outlive a client reconnect, i.e. actually hit the volume.
-	const persisted = await users.countDocuments();
-	console.log(`  INFO  users collection holds ${persisted} document(s) after cleanup`);
+	// Report what the test left behind, so a stray document from an interrupted
+	// run is visible. This does not test persistence — nothing here reconnects or
+	// restarts the container.
+	const remaining = await users.countDocuments();
+	console.log(`  INFO  users collection holds ${remaining} document(s) after cleanup`);
 } catch (err) {
 	failures++;
 	console.error('  FAIL  unexpected error:', err.message);
