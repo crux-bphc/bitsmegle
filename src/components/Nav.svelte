@@ -6,7 +6,7 @@
 	import logo from '$lib/assets/logo.png';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { PUBLIC_BACKEND_URI, PUBLIC_BACKEND_WS_URI } from '$env/static/public';
+	import { PUBLIC_BACKEND_WS_URI } from '$env/static/public';
 
 	$: currentOnlineCount = 1;
 	const parseCookie = (cookieString: string): Record<string, string> => {
@@ -32,21 +32,12 @@
 	// 		.then((data) => (currentOnlineCount = data.count));
 	// };
 
-	const checkExpiration = async (userData: string) => {
+	const checkExpiration = async () => {
+		// Re-read every tick: /api/refresh rewrites the cookie behind our back
+		const userData = parseCookie(document.cookie).user;
 		if (userData && JSON.parse(userData).expiry_date < Date.now()) {
-			let res = await fetch(`${PUBLIC_BACKEND_URI}/api/users`, {
-				method: 'POST',
-				body: userData,
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			let data = await res.json();
-			let cookie = data.cookie;
-			if (cookie) {
-				document.cookie = cookie;
-			}
+			const res = await fetch('/api/refresh', { method: 'POST' });
+			if (!res.ok) console.error('Could not refresh session');
 		}
 	};
 
@@ -76,8 +67,7 @@
 		}
 		// setCurrentOnlineCount();
 		// setInterval(() => setCurrentOnlineCount(), 5 * 1000); // Every 5 seconds
-		const userData = parseCookie(document.cookie).user;
-		setInterval(() => checkExpiration(userData), 10 * 60 * 1000); // Every 10 minutes
+		setInterval(() => checkExpiration(), 10 * 60 * 1000); // Every 10 minutes
 	});
 </script>
 

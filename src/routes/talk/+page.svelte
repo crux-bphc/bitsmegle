@@ -70,7 +70,6 @@
 				.then((res) => res.json())
 				.then((data) => {
 					user.set(data.data);
-					if (data.cookie) document.cookie = data.cookie;
 				});
 		} else {
 			return goto('/signup');

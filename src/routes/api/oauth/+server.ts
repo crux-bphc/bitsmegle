@@ -1,6 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
-import cookie from 'cookie';
 import { SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, REDIRECT_URI } from '$env/static/private';
+import { serializeSession } from '$lib/server/session';
 import { users } from '../../../db/users';
 import type { TokenResponse } from '$lib/types';
 
@@ -47,24 +47,13 @@ export const GET = async ({ url }) => {
 		console.log('credentials', user);
 
 		// let data = await getUserData(user.access_token);
-		let userData = JSON.stringify(user);
-
-		// Serialize your user data or a session token into a cookie
-		const serializedCookie = cookie.serialize('user', userData, {
-			httpOnly: false,
-			maxAge: 60 * 60 * 24 * 7, // 1 week
-			path: '/',
-			sameSite: 'strict',
-			secure: true
-		});
+		const headers = new Headers({ Location: '/talk' });
+		for (const c of serializeSession(user)) headers.append('Set-Cookie', c);
 
 		// Create a Response object to redirect the user and set the cookie
 		return new Response(null, {
 			status: 303,
-			headers: {
-				'Set-Cookie': serializedCookie,
-				Location: '/talk'
-			}
+			headers
 		});
 	} catch (err) {
 		console.error('Error during the OAuth flow', err);
