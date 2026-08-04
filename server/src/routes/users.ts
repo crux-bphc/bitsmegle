@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 
 import { users } from '../config/mongo';
-import { state } from '../services/realtime';
+import { hasActiveInteractionLock, recordInteraction } from '../services/realtime';
 import { getUserData, identify } from '../services/identity';
 import { claimRating } from '../services/pairings';
 const router = Router();
@@ -56,8 +56,7 @@ router.post('/rep', async (req: Request, res: Response) => {
 	if (userId === targetId) return res.status(403).send('Cannot rate yourself');
 
 	try {
-		state.interactions[userId] = state.interactions[userId] || [];
-		if (state.interactions[userId].includes(targetId))
+		if (hasActiveInteractionLock(userId, targetId))
 			return res.status(409).send('Already rated today');
 
 		// The caller must actually have been paired with the target by this server.
@@ -70,7 +69,7 @@ router.post('/rep', async (req: Request, res: Response) => {
 		const result = await users.updateOne({ id: targetId }, { $inc: { reputation: delta } });
 		if (result.matchedCount === 0) return res.status(404).send('No such user');
 
-		state.interactions[userId].push(targetId);
+		recordInteraction(userId, targetId);
 		return res.status(200).send('Success');
 	} catch (err) {
 		console.error(err);
