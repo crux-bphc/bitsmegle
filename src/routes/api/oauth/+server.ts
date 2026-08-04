@@ -4,7 +4,21 @@ import { serializeSession } from '$lib/server/session';
 import { users } from '../../../db/users';
 import type { TokenResponse } from '$lib/types';
 
+// Confirms the access token was issued to this app's OAuth client, not some
+// other Google app that also holds the userinfo scope (confused deputy).
+const verifyTokenAudience = async (access_token: string) => {
+	const response = await fetch(
+		`https://oauth2.googleapis.com/tokeninfo?access_token=${access_token}`
+	);
+	const info = await response.json();
+	if (!response.ok || info.aud !== SECRET_CLIENT_ID) {
+		throw new Error('Token was not issued for this application');
+	}
+};
+
 const getUserData = async (access_token: string) => {
+	await verifyTokenAudience(access_token);
+
 	const response = await fetch(
 		`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
 	);

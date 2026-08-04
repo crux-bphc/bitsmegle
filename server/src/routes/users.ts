@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 
 import { users } from '../config/mongo';
 import { state } from '../services/realtime';
+import { SECRET_CLIENT_ID } from '../config/env';
 import type { User } from '../models/User';
 const router = Router();
 
@@ -32,9 +33,23 @@ async function addUserToDB(user: User): Promise<void> {
 }
 
 /**
+ * Confirms the access token was issued to this app's OAuth client, not some
+ * other Google app that also holds the userinfo scope (confused deputy).
+ */
+async function verifyTokenAudience(accessToken: string): Promise<void> {
+	const resp = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${accessToken}`);
+	const info = await resp.json();
+	if (!resp.ok || info.aud !== SECRET_CLIENT_ID) {
+		throw new Error('Token was not issued for this application');
+	}
+}
+
+/**
  * Fetches Google userinfo and ensures DB entry
  */
 async function getUserData(accessToken: string): Promise<User> {
+	await verifyTokenAudience(accessToken);
+
 	const resp = await fetch(
 		`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`
 	);
