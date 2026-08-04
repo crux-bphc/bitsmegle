@@ -46,6 +46,8 @@ Additionally, `action` is not validated: any value other than the string `'like'
 
 Any XSS, any malicious browser extension, or any third-party script reads `document.cookie` and obtains a long-lived refresh token, giving persistent access to the victim's Google profile scope. Refresh tokens must never be exposed to client-side JavaScript.
 
+**Fixed:** #2 — refresh token moved to a separate `httpOnly` cookie (`src/lib/server/session.ts`), refresh flow moved to `/api/refresh`.
+
 ### S4 · High — No token audience verification (confused deputy)
 
 Both `getUserData` implementations (`server/src/routes/users.ts:39-54` and `src/routes/api/oauth/+server.ts:7-21`) pass an arbitrary bearer token to Google's userinfo endpoint and trust whatever comes back. Nothing verifies the token was issued to _this_ application's `client_id`.
