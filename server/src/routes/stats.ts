@@ -44,7 +44,7 @@ router.get('/user-count', (_req: Request, res: Response) => {
 // GET /stats/calls
 // Returns stats about calls
 router.get('/calls', (_req: Request, res: Response) => {
-	const { calls } = state;
+	const calls = Array.from(state.calls.values());
 	const total = calls.length;
 	const notPaired = calls.filter((c) => !c.paired).length;
 	const paired = calls.filter((c) => c.paired).length;

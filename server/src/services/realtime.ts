@@ -15,7 +15,7 @@ export type InteractionsMap = Record<string, string[]>;
 
 export const state = {
 	userCount: 0,
-	calls: [] as Call[],
+	calls: new Map<string, Call>(),
 	interactions: {} as InteractionsMap,
 	stats: {
 		totalUsersConnected: 0,

@@ -3,6 +3,17 @@ import { state } from '../services/realtime';
 import type { Call } from '../services/realtime';
 
 export default function signaling(io: Server) {
+	// A socket is only ever part of one call at a time; releasing the previous
+	// entry whenever a socket commits to a new call keeps `state.calls` bounded
+	// by concurrently active calls instead of every call ever made.
+	const releaseCall = (socket: Socket) => {
+		const callId = socket.data.currentCallId as string | undefined;
+		if (callId) {
+			state.calls.delete(callId);
+			socket.data.currentCallId = undefined;
+		}
+	};
+
 	io.on('connection', (socket: Socket) => {
 		state.userCount += 1;
 		state.stats.totalUsersConnected += 1;
@@ -11,25 +22,28 @@ export default function signaling(io: Server) {
 
 		socket.on('disconnect', () => {
 			state.userCount -= 1;
-			// remove stale unpaired calls
-			state.calls = state.calls.filter(
-				(c: Call) => !(c.paired === false && c.offerMaker === socket)
-			);
+			releaseCall(socket);
 			io.sockets.emit('userCountChange', state.userCount);
 		});
 
 		socket.on('looking-for-somebody', (userInfo: any) => {
 			console.log(`${userInfo.name} is looking for somebody`);
 			// find an unpaired offer
-			const call = state.calls.find(
-				(c: Call) => c.answer === null && c.offerMaker !== socket && !c.paired
-			);
+			let call: Call | undefined;
+			for (const c of state.calls.values()) {
+				if (c.answer === null && c.offerMaker !== socket && !c.paired) {
+					call = c;
+					break;
+				}
+			}
 
 			if (call) {
 				console.log(`${userInfo.name} is paired with ${call.offerMakerUser.name}`);
 				state.stats.totalCallsPaired += 1;
 				call.paired = true;
 				call.answerMakerUser = userInfo;
+				releaseCall(socket);
+				socket.data.currentCallId = call.callId;
 				socket.emit('call-found', call.callId);
 			} else {
 				console.log(`Found no one to pair with ${userInfo.name} at the moment`);
@@ -39,7 +53,9 @@ export default function signaling(io: Server) {
 		});
 
 		socket.on('make-offer', (data: any) => {
-			state.calls.push({
+			releaseCall(socket);
+			socket.data.currentCallId = data.callId;
+			state.calls.set(data.callId, {
 				callId: data.callId,
 				offer: data.offer,
 				offerMaker: socket,
@@ -54,7 +70,7 @@ export default function signaling(io: Server) {
 		});
 
 		socket.on('offerCandidate', (candidate: any) => {
-			const call = state.calls.find((c) => c.callId === candidate.callId);
+			const call = state.calls.get(candidate.callId);
 			if (call) {
 				call.offerCandidates.push(candidate);
 				const interval = setInterval(() => {
@@ -67,7 +83,7 @@ export default function signaling(io: Server) {
 		});
 
 		socket.on('make-answer', (data: any) => {
-			const call = state.calls.find((c) => c.callId === data.callId);
+			const call = state.calls.get(data.callId);
 			if (call) {
 				call.answer = data.answer;
 				call.offerMaker.emit('answer-made', data);
@@ -75,7 +91,7 @@ export default function signaling(io: Server) {
 		});
 
 		socket.on('answerCandidate', (candidate: any) => {
-			const call = state.calls.find((c) => c.callId === candidate.callId);
+			const call = state.calls.get(candidate.callId);
 			if (call) {
 				call.answerCandidates.push(candidate);
 				call.offerMaker.emit('add-ice-candidate', candidate);
@@ -85,7 +101,7 @@ export default function signaling(io: Server) {
 
 		socket.on('call-accepted', (data: any) => {
 			console.log('Call Accepted');
-			const call = state.calls.find((c) => c.callId === data.callId);
+			const call = state.calls.get(data.callId);
 			if (!call) return;
 
 			call.answerMaker = socket;
@@ -99,7 +115,7 @@ export default function signaling(io: Server) {
 		});
 
 		socket.on('who-is-remote', (payload: any) => {
-			const call = state.calls.find((c) => c.callId === payload.callId);
+			const call = state.calls.get(payload.callId);
 			if (call) {
 				if (call.offerMaker === socket) {
 					socket.emit('remote-user', call.answerMakerUser);
@@ -116,10 +132,8 @@ export default function signaling(io: Server) {
 				return;
 			}
 
-			const call = state.calls.find(
-				(c) => c.callId === callId && c.paired && c.answerMaker !== null
-			);
-			if (!call) {
+			const call = state.calls.get(callId);
+			if (!call || !call.paired || call.answerMaker === null) {
 				console.warn('Dropping chat-message: call not found or not paired', callId);
 				return;
 			}
