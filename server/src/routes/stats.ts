@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { state } from '../services/realtime';
+import { requireStatsApiKey } from '../middleware/requireStatsApiKey';
 
 const router = Router();
+router.use(requireStatsApiKey);
 
 function formatElapsedTime(startIso: string) {
 	const elapsedMs = Date.now() - new Date(startIso).getTime();
