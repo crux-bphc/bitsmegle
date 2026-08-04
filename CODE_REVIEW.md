@@ -42,6 +42,8 @@ Anyone can boost their own reputation or tank any other user's by ID. Currently 
 
 Additionally, `action` is not validated: any value other than the string `'like'` is treated as a dislike.
 
+**Fixed:** #4 — `/rep` now resolves the caller from a verified access token, rejects self-rating, validates `action` against `{like, dislike}`, and requires an unspent pairing recorded when a call actually connected. The same change also fixed [S9](#s9--medium--identity-is-client-supplied-in-signalling) and [S10](#s10--medium--signalling-events-perform-no-participant-check) by deriving identity server-side at the socket handshake and checking `call-accepted` against the actual matched participant.
+
 ### S3 · Critical — OAuth refresh tokens in a JavaScript-readable cookie
 
 `src/routes/api/oauth/+server.ts:53-59` serialises the _entire_ Google token response — `access_token` **and** `refresh_token` — into the `user` cookie with `httpOnly: false`. The same pattern appears at `server/src/routes/users.ts:88-94`.
@@ -56,13 +58,19 @@ Both `getUserData` implementations (`server/src/routes/users.ts:39-54` and `src/
 
 An access token minted by any other Google OAuth app holding the userinfo scope will authenticate successfully here. The fix is to verify the `id_token` with `verifyIdToken({ audience: SECRET_CLIENT_ID })`, or to check `aud` via the tokeninfo endpoint.
 
+**Fixed:** #15 — both `getUserData`/`identify` call sites now verify the token's `aud` against `SECRET_CLIENT_ID` via Google's tokeninfo endpoint before trusting it.
+
 ### S5 · High — Access tokens passed in URL query strings
 
 `server/src/routes/users.ts:41` and `src/routes/api/oauth/+server.ts:9` both build `...userinfo?access_token=${token}`. Query strings are recorded in proxy, CDN and server access logs and leak via `Referer`. Use an `Authorization: Bearer` header.
 
+**Fixed:** #4 and #6 — landed as a side effect of #4 relocating `getUserData` into `server/src/services/identity.ts` (already using an `Authorization: Bearer` header) and #6 deleting the frontend's dead-code copy in `src/routes/api/oauth/+server.ts`. A dedicated PR (#8) made the identical fix independently and was closed as a superseded no-op once #4 and #6 had already landed it.
+
 ### S6 · High — `/stats/*` is public and leaks a social graph
 
 `GET /stats/interactions` (`server/src/routes/stats.ts:59-66`) returns the complete `interactions` map: every BITS ID and the list of every user they have rated. None of the four stats routes has any authentication.
+
+**Fixed:** #7 — all four `/stats/*` routes now require a shared-secret `STATS_API_KEY` (via `Authorization: Bearer` or `X-API-Key`). Confirmed by grep that the frontend never called any `/stats` route to begin with (the online-count badge uses the `userCountChange` socket event instead), so this was safe to lock down outright.
 
 ### S7 · High — Unauthenticated mail relay
 
@@ -70,9 +78,13 @@ The `/report` form action (`src/routes/report/+page.server.ts`) sends mail with 
 
 Anyone can POST arbitrary content repeatedly and spam through — or get suspended — the project's Gmail account. The client-supplied values are also interpolated directly into the `subject:` header.
 
+**Fix opened:** #10 (not yet merged) — strips CRLF out of client-supplied header fields (`reporterName`/`reporterEmail`) before they reach Nodemailer, adds a per-IP rate limit, and adds a honeypot field.
+
 ### S8 · High — TLS verification disabled on the SMTP connection
 
 `src/routes/report/+page.server.ts:16-18` sets `tls: { rejectUnauthorized: false }`. The Gmail app password is transmitted over a connection that will accept any certificate, including an attacker's. There is no reason to disable verification against `smtp.gmail.com`.
+
+**Fix opened:** #5 (not yet merged) — removes the `rejectUnauthorized: false` override.
 
 ### S9 · Medium — Identity is client-supplied in signalling
 
@@ -80,25 +92,37 @@ Anyone can POST arbitrary content repeatedly and spam through — or get suspend
 
 A patched client can present any name and email to its peer — in-call impersonation. That value also feeds the `targetId` computed by `Rate.svelte`.
 
+**Fixed:** #4 — see [S2](#s2--critical--reputation-is-forgeable). Sockets now authenticate at handshake with the Google access token, and the server derives identity itself instead of trusting the client-supplied `$user` payload in signalling events.
+
 ### S10 · Medium — Signalling events perform no participant check
 
 `make-answer`, `answerCandidate`, `call-accepted` and `who-is-remote` (`server/src/sockets/signaling.ts:69-110`) look a call up by `callId` alone and never verify the emitting socket belongs to it. In particular `call-accepted` lets any socket that learns a `callId` overwrite `call.answerMaker` and receive the offer.
+
+**Fixed:** #4 — see [S2](#s2--critical--reputation-is-forgeable). `call-accepted` now only succeeds for the socket the call was actually matched with.
 
 ### S11 · Medium — CORS is wide open on REST but restricted on WebSocket
 
 `server/src/app.ts:7` uses bare `app.use(cors())`, allowing every origin, while Socket.IO enforces a four-entry allowlist (`server/src/index.ts:14-22`). Combined with the JS-readable cookie ([S3](#s3--critical--oauth-refresh-tokens-in-a-javascript-readable-cookie)), `/api/users` and `/api/users/rep` are invokable from any website.
 
+**Fixed:** #16 — the REST API's CORS policy now shares the same origin allowlist as Socket.IO, via a new `server/src/config/corsOrigins.ts`.
+
 ### S12 · Medium — No rate limiting and no security headers
 
 Confirmed absent by grep: no `express-rate-limit`, no `helmet`. Every `POST /api/users` triggers an outbound Google request plus a Mongo query, unauthenticated and unbounded.
+
+**Fixed:** #11 — added `helmet()` globally and `express-rate-limit` on the `/api/users` router.
 
 ### S13 · Low — Secrets written to logs
 
 `src/routes/api/oauth/+server.ts:47` logs `console.log('credentials', user)` — the access and refresh tokens. Line 29 logs the OAuth authorization code.
 
+**Fixed:** #6 — the token response and authorization code are no longer logged; the error-path log now prints `err.message` instead of the raw error object (which could itself carry token data).
+
 ### S14 · Low — No validation or size caps on socket payloads
 
 `chat-message` accepts any type and any length (`signaling.ts:112`); `make-offer` accepts an arbitrary object that is pushed into server memory.
+
+**Fixed:** #12 — `chat-message` now requires a string under a size cap, and `make-offer`/`make-answer`/ICE-candidate payloads are shape- and size-checked before being stored.
 
 ---
 
@@ -203,17 +227,25 @@ Lines 22 and 29 additionally log every user's name on every match attempt. Eithe
 
 Meanwhile `state.calls.find(...)` runs on every ICE candidate and every chat message (lines 24, 57, 70, 78, 88, 102, 119). This is simultaneously a memory leak and a matchmaking path that degrades linearly with cumulative usage.
 
+**Fixed:** #17 — `state.calls` is now a `Map<callId, Call>`; calls are released on disconnect of either participant, not just the unpaired case, and every lookup is O(1) instead of a linear scan.
+
 ### R2 · High — A leaked 100 ms interval per ICE candidate `[known]`
 
 `server/src/sockets/signaling.ts:60-65` starts a `setInterval` for every offer candidate, cleared only once `call.answerMaker` is set. If the peer never answers, it spins forever. With `iceCandidatePoolSize: 10` on the client, that is roughly ten or more permanent timers per abandoned call.
+
+**Fixed:** #13 — interval handles are now tracked and cleared on every call-teardown path (successful answer, or either side disconnecting before one), not just the answered case. Verified with a before/after reproduction: unfixed, tick count climbed indefinitely after an abandoned call; fixed, it flatlines immediately at disconnect.
 
 ### R3 · Medium — `state.interactions` never resets `[known]`
 
 `server/src/routes/users.ts:119` returns "Already rated today", but nothing ever clears the map. The rating lock is permanent rather than daily, and the structure grows without bound.
 
+**Fixed:** #9 — the lock now actually expires after 24h, with lazy pruning of stale entries at read/write time instead of the map growing forever.
+
 ### R4 · Medium — Leaked subscriptions and intervals in `Video.svelte`
 
 `src/components/Video.svelte:42-63` subscribes to `storeStream` and `currentUser` inside `onMount` and never unsubscribes. Each stream emission also starts a fresh 1 s `setInterval` that clears only once `videoElement` is non-null — and when the "them" tile is swapped out for `<Rate>` (`talk/+page.svelte:313-317`), that element no longer exists, so the interval runs indefinitely.
+
+**Fixed:** #14 — both store subscriptions are unsubscribed and the polling interval is cleared unconditionally in `onDestroy`.
 
 ### R5 · Low — All state is in-process `[known]`
 
