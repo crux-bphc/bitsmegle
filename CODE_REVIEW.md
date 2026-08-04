@@ -117,11 +117,15 @@ The client sends `data` as a JSON **string** (`src/components/Rate.svelte:36` pa
 
 The ternary is inverted; it should parse `req.body.data`, not `req.body`. The failure is invisible in the UI because `Rate.svelte:41` only writes to `console.error`.
 
+**Fixed:** #3 — `targetId`/`action` now read off `req.body`, and `data` is parsed from `req.body.data`.
+
 ### B2 · High — Users whose name contains a double or trailing space can never log in
 
 Both title-case helpers map over space-split tokens and dereference `w[0]` (`server/src/routes/users.ts:47-50`, `src/routes/api/oauth/+server.ts:16-19`). An empty token has no index 0.
 
 **Verified:** `"John  Doe"` and `"Priya "` both throw `TypeError: Cannot read properties of undefined`. In `users.ts` this is caught and returned as `401 Authentication failed`, indistinguishable from a genuine auth failure.
+
+**Fixed:** #3 — both copies filter out empty tokens before title-casing. The frontend copy (`src/routes/api/oauth/+server.ts`) was later deleted outright as dead code, since its only call site was already commented out.
 
 ### B3 · High — Token refresh is unreachable dead code, and expiry renders a blank page
 
@@ -131,9 +135,13 @@ The downstream effect is worse than a missing refresh. An expired token produces
 
 **An expired session shows a completely blank `/talk` page with no error and no redirect.**
 
+**Fixed:** #3 fixed the blank-page symptom — both callers now check `res.ok` before `res.json()` and redirect to `/signup` on failure. The unreachable-refresh root cause ended up fixed separately by #2's redesign: refresh moved to `POST /api/refresh`, which runs same-origin and can read the httpOnly refresh cookie the backend never had access to. #3's own backend retry-with-refresh logic conflicted with that redesign and was dropped in favor of it when the branches were merged.
+
 ### B4 · Medium — Stale closure in the refresh timer
 
 `src/components/Nav.svelte:79-80` reads the cookie once at mount and then re-posts that captured string every 10 minutes indefinitely. If the cookie is ever updated the timer keeps sending the superseded value. The interval is also never cleared on component destroy.
+
+**Partially fixed:** #3 and #2 independently fixed the stale-closure half — `checkExpiration` now re-reads `document.cookie` on every tick instead of a value captured at mount (#2's version is what shipped, since #3's `Nav.svelte` changes were superseded by #2's refresh redesign during the merge — see B3). The `setInterval` is still never cleared on destroy.
 
 ### B5 · Medium — Chat listener registered in the component body
 
