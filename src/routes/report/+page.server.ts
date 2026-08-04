@@ -12,9 +12,6 @@ export const actions = {
 			auth: {
 				user: SECRET_GMAIL_USER,
 				pass: SECRET_GMAIL_PASS
-			},
-			tls: {
-				rejectUnauthorized: false
 			}
 		});
 
