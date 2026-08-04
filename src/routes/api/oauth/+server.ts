@@ -15,6 +15,7 @@ const getUserData = async (access_token: string) => {
 	// convert to titlecase
 	data.name = data.name
 		.split(' ')
+		.filter((w: string) => w.length > 0)
 		.map((w: string) => w[0].toUpperCase() + w.substring(1).toLowerCase())
 		.join(' ');
 	return data;
