@@ -35,9 +35,9 @@ async function addUserToDB(user: User): Promise<void> {
  * Fetches Google userinfo and ensures DB entry
  */
 async function getUserData(accessToken: string): Promise<User> {
-	const resp = await fetch(
-		`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`
-	);
+	const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+		headers: { Authorization: `Bearer ${accessToken}` }
+	});
 	const data = await resp.json();
 	if (!data.name) throw new Error('Failed to fetch user data');
 

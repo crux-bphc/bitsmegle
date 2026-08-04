@@ -5,9 +5,9 @@ import { users } from '../../../db/users';
 import type { TokenResponse } from '$lib/types';
 
 const getUserData = async (access_token: string) => {
-	const response = await fetch(
-		`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
-	);
+	const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+		headers: { Authorization: `Bearer ${access_token}` }
+	});
 	const data = await response.json();
 	if (data.name === undefined) {
 		return { error: 'Failed to get user data' };
