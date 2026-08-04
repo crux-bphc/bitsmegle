@@ -4,22 +4,6 @@ import { serializeSession } from '$lib/server/session';
 import { users } from '../../../db/users';
 import type { TokenResponse } from '$lib/types';
 
-const getUserData = async (access_token: string) => {
-	const response = await fetch(
-		`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
-	);
-	const data = await response.json();
-	if (data.name === undefined) {
-		return { error: 'Failed to get user data' };
-	}
-	// convert to titlecase
-	data.name = data.name
-		.split(' ')
-		.map((w: string) => w[0].toUpperCase() + w.substring(1).toLowerCase())
-		.join(' ');
-	return data;
-};
-
 export const GET = async ({ url }) => {
 	const redirectURL = REDIRECT_URI + '/api/oauth';
 
@@ -46,7 +30,6 @@ export const GET = async ({ url }) => {
 		const user = oAuth2Client.credentials;
 		console.log('credentials', user);
 
-		// let data = await getUserData(user.access_token);
 		const headers = new Headers({ Location: '/talk' });
 		for (const c of serializeSession(user)) headers.append('Set-Cookie', c);
 
