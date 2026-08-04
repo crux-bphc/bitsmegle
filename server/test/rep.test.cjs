@@ -40,6 +40,14 @@ const TOKENS = {
 	'tok-mallory': { name: 'Mallory M', email: 'f20239999@hyderabad.bits-pilani.ac.in', picture: '' }
 };
 global.fetch = async (url, opts) => {
+	if (String(url).includes('oauth2.googleapis.com/tokeninfo')) {
+		const token = new URL(String(url)).searchParams.get('access_token');
+		const valid = Object.prototype.hasOwnProperty.call(TOKENS, token);
+		return {
+			ok: valid,
+			json: async () => (valid ? { aud: process.env.SECRET_CLIENT_ID } : { error: 'invalid_token' })
+		};
+	}
 	if (String(url).includes('googleapis.com/oauth2/v3/userinfo')) {
 		const auth = (opts?.headers?.Authorization || '').replace('Bearer ', '');
 		const profile = TOKENS[auth];
