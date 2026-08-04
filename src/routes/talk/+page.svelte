@@ -67,9 +67,15 @@
 					'Content-Type': 'application/json'
 				}
 			})
-				.then((res) => res.json())
-				.then((data) => {
+				.then(async (res) => {
+					if (!res.ok) return goto('/signup');
+
+					const data = await res.json();
 					user.set(data.data);
+				})
+				.catch((err) => {
+					console.error(err);
+					goto('/signup');
 				});
 		} else {
 			return goto('/signup');
