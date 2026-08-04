@@ -32,6 +32,8 @@ The product premise is a video chat "restricted to BITS Pilani students", but no
 
 Any Google account can enter a video chat with students. Fix requires both `hosted_domain` on the consent URL (a UX hint, not a control) _and_ a server-side domain check on the verified email before the user document is created.
 
+**Not being worked on:** the restriction is instead enforced in the Google OAuth client's configuration on Cloud Console, not in application code.
+
 ### S2 · Critical — Reputation is forgeable
 
 `POST /api/users/rep` (`server/src/routes/users.ts:109-123`) takes `targetId` directly from the request body. There is no check that the caller was ever in a call with that user, and no check that `targetId` is not the caller. The value flows straight into `users.updateOne({ id: targetId }, { $inc: { reputation: delta } })`.
