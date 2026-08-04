@@ -2,6 +2,35 @@ import { Server, Socket } from 'socket.io';
 import { state } from '../services/realtime';
 import type { Call } from '../services/realtime';
 
+// Tracks the setInterval handles used to retry relaying an ICE candidate until the
+// call is answered, so any exit path (answered, abandoned, disconnect) can clear
+// them exactly once instead of letting unanswered ones run forever.
+const pendingIceRelays = new Map<string, NodeJS.Timeout[]>();
+
+function addPendingIceRelay(callId: string, timer: NodeJS.Timeout) {
+	const timers = pendingIceRelays.get(callId);
+	if (timers) {
+		timers.push(timer);
+	} else {
+		pendingIceRelays.set(callId, [timer]);
+	}
+}
+
+function removePendingIceRelay(callId: string, timer: NodeJS.Timeout) {
+	const timers = pendingIceRelays.get(callId);
+	if (!timers) return;
+	const index = timers.indexOf(timer);
+	if (index !== -1) timers.splice(index, 1);
+	if (timers.length === 0) pendingIceRelays.delete(callId);
+}
+
+function clearPendingIceRelays(callId: string) {
+	const timers = pendingIceRelays.get(callId);
+	if (!timers) return;
+	timers.forEach(clearInterval);
+	pendingIceRelays.delete(callId);
+}
+
 export default function signaling(io: Server) {
 	io.on('connection', (socket: Socket) => {
 		state.userCount += 1;
@@ -11,6 +40,13 @@ export default function signaling(io: Server) {
 
 		socket.on('disconnect', () => {
 			state.userCount -= 1;
+
+			// A disconnecting offerer or answerer can never receive a relayed
+			// candidate for its calls again, so stop retrying them.
+			state.calls
+				.filter((c: Call) => c.offerMaker === socket || c.answerMaker === socket)
+				.forEach((c: Call) => clearPendingIceRelays(c.callId));
+
 			// remove stale unpaired calls
 			state.calls = state.calls.filter(
 				(c: Call) => !(c.paired === false && c.offerMaker === socket)
@@ -61,8 +97,10 @@ export default function signaling(io: Server) {
 					if (call.answerMaker) {
 						call.answerMaker.emit('add-ice-candidate', candidate);
 						clearInterval(interval);
+						removePendingIceRelay(candidate.callId, interval);
 					}
 				}, 100);
+				addPendingIceRelay(candidate.callId, interval);
 			}
 		});
 
