@@ -5,12 +5,16 @@ if (
 	!process.env.DB_URI ||
 	!process.env.SECRET_CLIENT_ID ||
 	!process.env.SECRET_CLIENT_SECRET ||
-	!process.env.PORT
+	!process.env.PORT ||
+	!process.env.STATS_API_KEY
 ) {
-	throw new Error('Missing one of DB_URI, SECRET_CLIENT_ID, SECRET_CLIENT_SECRET or PORT');
+	throw new Error(
+		'Missing one of DB_URI, SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, PORT or STATS_API_KEY'
+	);
 }
 
 export const DB_URI = process.env.DB_URI;
 export const SECRET_CLIENT_ID = process.env.SECRET_CLIENT_ID;
 export const SECRET_CLIENT_SECRET = process.env.SECRET_CLIENT_SECRET;
 export const PORT = process.env.PORT;
+export const STATS_API_KEY = process.env.STATS_API_KEY;
