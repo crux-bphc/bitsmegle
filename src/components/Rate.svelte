@@ -5,15 +5,6 @@
 
 	import { remoteUser } from '$lib/stores/userStore';
 
-	const getIdFromEmail = (email: string | undefined): string => {
-		if (!email) return '';
-		// convert email in the format f20230043@hyderabad.bits-pilani.ac.in to 'f20230043h'
-		const id = email.split('@')[0];
-		const idParts = email.split('@')[1].split('.');
-		const campus = idParts[0];
-		return id + campus[0];
-	};
-
 	const parseCookie = (cookieString: string): Record<string, string> => {
 		const cookies: Record<string, string> = {};
 		cookieString.split(';').forEach((cookie) => {
@@ -26,6 +17,14 @@
 	};
 
 	const updateUser = async (action: 'like' | 'dislike') => {
+		// The id comes from the server via the `remote-user` event, not from a local
+		// transform — the backend re-checks it against the pairing it brokered anyway.
+		const targetId = $remoteUser?.id;
+		if (!targetId) {
+			console.error('Could not update user rep: no remote user id');
+			return;
+		}
+
 		const response = await fetch(`${PUBLIC_BACKEND_URI}/api/users/rep`, {
 			method: 'POST',
 			headers: {
@@ -34,11 +33,11 @@
 			body: JSON.stringify({
 				action,
 				data: parseCookie(document.cookie).user,
-				targetId: getIdFromEmail($remoteUser?.email)
+				targetId
 			})
 		});
 		if (response.status !== 200 && response.status !== 409) {
-			console.error('Could not update user rep');
+			console.error('Could not update user rep:', response.status, await response.text());
 		} else if (response.status === 409) {
 			console.log('Already liked/disliked user');
 		} else if (response.status === 200) {
