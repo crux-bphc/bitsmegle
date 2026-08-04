@@ -67,9 +67,15 @@
 					'Content-Type': 'application/json'
 				}
 			})
-				.then((res) => res.json())
-				.then((data) => {
+				.then(async (res) => {
+					if (!res.ok) return goto('/signup');
+
+					const data = await res.json();
 					user.set(data.data);
+				})
+				.catch((err) => {
+					console.error(err);
+					goto('/signup');
 				});
 		} else {
 			return goto('/signup');
@@ -220,7 +226,8 @@
 		}
 		console.log('Looking for somebody...');
 		$currentStatus = 'Finding somebody...';
-		$socket?.emit('looking-for-somebody', $user);
+		// No identity payload: the backend uses the one it derived at handshake time.
+		$socket?.emit('looking-for-somebody');
 	};
 
 	const handleCall = async () => {
@@ -237,7 +244,7 @@
 			type: offerDescription.type
 		};
 
-		$socket?.emit('make-offer', { callId, offer, user: $user });
+		$socket?.emit('make-offer', { callId, offer });
 
 		// Get candidates for caller, save to db
 		peerConnection.onicecandidate = async (event) => {
