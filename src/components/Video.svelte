@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import Loader from './Loader.svelte';
 	import { currentStatus } from '$lib/stores/statusStore';
 	import { user, remoteUser } from '$lib/stores/userStore';
@@ -36,31 +36,40 @@
 			hideNameplateLater();
 		}
 	};
+	let srcObjectInterval: ReturnType<typeof setInterval> | null = null;
+	let unsubscribeStream: (() => void) | null = null;
+	let unsubscribeUser: (() => void) | null = null;
+
 	onMount(() => {
 		hideNameplateLater();
 
-		storeStream.subscribe((stream: MediaStream | null) => {
-			// console.log(stream);
+		unsubscribeStream = storeStream.subscribe((stream: MediaStream | null) => {
+			if (srcObjectInterval) clearInterval(srcObjectInterval);
 
-			let interval = setInterval(() => {
+			srcObjectInterval = setInterval(() => {
 				if (videoElement) {
 					videoElement.srcObject = stream;
-					clearInterval(interval);
-				} else {
-					// console.error('Video element not found retrying in 1s');
+					if (srcObjectInterval) clearInterval(srcObjectInterval);
+					srcObjectInterval = null;
 				}
 			}, 1000);
 
 			hideNameplateLater();
 		});
 
-		currentUser.subscribe((user: User | null) => {
+		unsubscribeUser = currentUser.subscribe((user: User | null) => {
 			if (user) {
 				videoElement?.classList.remove('hidden');
 			} else {
 				videoElement?.classList.add('hidden');
 			}
 		});
+	});
+
+	onDestroy(() => {
+		unsubscribeStream?.();
+		unsubscribeUser?.();
+		if (srcObjectInterval) clearInterval(srcObjectInterval);
 	});
 </script>
 
