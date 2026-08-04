@@ -59,6 +59,14 @@
 	</p>
 	<form class="flex flex-col items-center justify-center space-y-4 text-black" method="POST">
 		<input
+			type="text"
+			name="website"
+			tabindex="-1"
+			autocomplete="off"
+			class="hidden"
+			aria-hidden="true"
+		/>
+		<input
 			type="email"
 			name="reporterEmail"
 			placeholder="Your email"
