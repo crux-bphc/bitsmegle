@@ -1,0 +1,41 @@
+# Local development database only. The production stack lives in docker-compose.yml.
+#   npm run db:up      start MongoDB
+#   npm run db:down    stop it (data is kept in the mongo-data volume)
+name: bitsmegle-dev
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: bitsmegle-mongo
+    restart: unless-stopped
+    ports:
+      # Bound to loopback: the local instance runs without auth, so it must
+      # never be reachable from outside this machine.
+      - '127.0.0.1:${MONGO_PORT:-27017}:27017'
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # Optional web UI at http://localhost:8081 — start with:
+  #   docker compose -f docker-compose.dev.yml --profile ui up -d
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: bitsmegle-mongo-express
+    profiles: ['ui']
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - '127.0.0.1:${MONGO_EXPRESS_PORT:-8081}:8081'
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/
+      ME_CONFIG_BASICAUTH: 'false'
+
+volumes:
+  mongo-data:

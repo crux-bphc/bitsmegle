@@ -9,7 +9,15 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
-		"format": "prettier --write ."
+		"format": "prettier --write .",
+		"db:up": "docker compose -f docker-compose.dev.yml up -d --wait",
+		"db:down": "docker compose -f docker-compose.dev.yml down",
+		"db:logs": "docker compose -f docker-compose.dev.yml logs -f mongo",
+		"db:shell": "docker compose -f docker-compose.dev.yml exec mongo mongosh bitsmegle",
+		"db:setup": "node scripts/db-setup.mjs",
+		"db:seed": "node scripts/db-setup.mjs --seed",
+		"db:test": "node scripts/db-smoke-test.mjs",
+		"db:reset": "docker compose -f docker-compose.dev.yml down -v && npm run db:up && npm run db:seed"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
