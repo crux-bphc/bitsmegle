@@ -26,7 +26,7 @@ export const INTERACTION_LOCK_TTL_MS = 24 * 60 * 60 * 1000;
 
 export const state = {
 	userCount: 0,
-	calls: [] as Call[],
+	calls: new Map<string, Call>(),
 	interactions: {} as InteractionsMap,
 	/** Calls that actually connected, and so entitle their participants to rate each other. */
 	pairings: [] as Pairing[],
