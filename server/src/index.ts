@@ -4,6 +4,7 @@ import { app } from './app';
 import { createServer } from 'http';
 import { Server as IOServer } from 'socket.io';
 import { PORT } from './config/env';
+import { corsOrigins } from './config/corsOrigins';
 import signaling from './sockets/signaling';
 
 async function bootstrap() {
@@ -12,12 +13,7 @@ async function bootstrap() {
 	const httpServer = createServer(app);
 	const io = new IOServer(httpServer, {
 		cors: {
-			origin: [
-				'https://bitsmegle.live',
-				'https://bitsmegle.vercel.app',
-				'https://bitsmegle.crux-bphc.com',
-				'http://localhost:5173'
-			]
+			origin: corsOrigins
 		}
 	});
 	signaling(io);
