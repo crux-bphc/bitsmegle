@@ -106,10 +106,10 @@ router.post('/', async (req: Request, res: Response) => {
 // Like/dislike another user
 router.post('/rep', async (req: Request, res: Response) => {
 	try {
-		const { data, targetId, action } =
-			typeof req.body.data === 'string' ? JSON.parse(req.body) : req.body;
+		const { targetId, action } = req.body;
+		const data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data;
 
-		if (typeof data.access_token !== 'string') return res.status(400).send('Missing access token');
+		if (typeof data?.access_token !== 'string') return res.status(400).send('Missing access token');
 
 		const user = await getUserData(data.access_token);
 		const userId = getIdFromEmail(user.email);
