@@ -6,7 +6,7 @@
 	import logo from '$lib/assets/logo.png';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { PUBLIC_BACKEND_URI, PUBLIC_BACKEND_WS_URI } from '$env/static/public';
+	import { PUBLIC_BACKEND_WS_URI } from '$env/static/public';
 
 	$: currentOnlineCount = 1;
 	const parseCookie = (cookieString: string): Record<string, string> => {
@@ -33,28 +33,11 @@
 	// };
 
 	const checkExpiration = async () => {
-		// re-read every tick: a successful refresh rewrites the cookie
+		// Re-read every tick: /api/refresh rewrites the cookie behind our back
 		const userData = parseCookie(document.cookie).user;
-		if (!userData || JSON.parse(userData).expiry_date >= Date.now()) return;
-
-		try {
-			let res = await fetch(`${PUBLIC_BACKEND_URI}/api/users`, {
-				method: 'POST',
-				body: userData,
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			if (!res.ok) return goto('/signup');
-
-			let data = await res.json();
-			let cookie = data.cookie;
-			if (cookie) {
-				document.cookie = cookie;
-			}
-		} catch (err) {
-			console.error(err);
+		if (userData && JSON.parse(userData).expiry_date < Date.now()) {
+			const res = await fetch('/api/refresh', { method: 'POST' });
+			if (!res.ok) console.error('Could not refresh session');
 		}
 	};
 

@@ -1,10 +1,8 @@
 import { Router, Request, Response } from 'express';
-import cookie from 'cookie';
 
 import { users } from '../config/mongo';
-import { SECRET_CLIENT_ID, SECRET_CLIENT_SECRET } from '../config/env';
 import { state } from '../services/realtime';
-import type { User, TokenResponse } from '../models/User';
+import type { User } from '../models/User';
 const router = Router();
 
 /**
@@ -46,7 +44,6 @@ async function getUserData(accessToken: string): Promise<User> {
 	// Title-case name
 	data.name = data.name
 		.split(' ')
-		.filter((w: string) => w.length > 0)
 		.map((w: string) => w[0].toUpperCase() + w.slice(1).toLowerCase())
 		.join(' ');
 
@@ -54,53 +51,15 @@ async function getUserData(accessToken: string): Promise<User> {
 	return data as User;
 }
 
-/**
- * Refreshes Google OAuth token
- */
-async function refreshToken(refreshToken: string): Promise<TokenResponse> {
-	const url = 'https://oauth2.googleapis.com/token';
-	const body = new URLSearchParams({
-		client_id: SECRET_CLIENT_ID,
-		client_secret: SECRET_CLIENT_SECRET,
-		refresh_token: refreshToken,
-		grant_type: 'refresh_token'
-	});
-
-	const resp = await fetch(url, { method: 'POST', body });
-	if (!resp.ok) throw new Error('Token refresh failed');
-	return (await resp.json()) as TokenResponse;
-}
-
 // POST /users
-// Login or refresh Google user
+// Login Google user
 router.post('/', async (req: Request, res: Response) => {
 	try {
 		const payload = typeof req.body.access_token === 'string' ? req.body : JSON.parse(req.body);
 
-		let user: User;
-		let cookieHeader: string | null = null;
+		const user = await getUserData(payload.access_token);
 
-		try {
-			user = await getUserData(payload.access_token);
-		} catch (err) {
-			// Google rejected the access token — retry once with the stored refresh token
-			if (typeof payload.refresh_token !== 'string') throw err;
-
-			const tokens = await refreshToken(payload.refresh_token);
-			tokens.refresh_token = payload.refresh_token;
-			tokens.expiry_date = Date.now() + tokens.expires_in * 1000;
-			user = await getUserData(tokens.access_token);
-			cookieHeader = cookie.serialize('user', JSON.stringify(tokens), {
-				httpOnly: false,
-				maxAge: 60 * 60 * 24 * 7,
-				path: '/',
-				sameSite: 'strict',
-				secure: true
-			});
-		}
-
-		if (cookieHeader) res.setHeader('Set-Cookie', cookieHeader);
-		return res.status(200).json({ data: user, cookie: cookieHeader });
+		return res.status(200).json({ data: user });
 	} catch (err) {
 		console.error(err);
 		return res.status(401).send('Authentication failed');
@@ -111,10 +70,10 @@ router.post('/', async (req: Request, res: Response) => {
 // Like/dislike another user
 router.post('/rep', async (req: Request, res: Response) => {
 	try {
-		const { targetId, action } = req.body;
-		const data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data;
+		const { data, targetId, action } =
+			typeof req.body.data === 'string' ? JSON.parse(req.body) : req.body;
 
-		if (typeof data?.access_token !== 'string') return res.status(400).send('Missing access token');
+		if (typeof data.access_token !== 'string') return res.status(400).send('Missing access token');
 
 		const user = await getUserData(data.access_token);
 		const userId = getIdFromEmail(user.email);

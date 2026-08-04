@@ -1,8 +1,24 @@
 import { OAuth2Client } from 'google-auth-library';
-import cookie from 'cookie';
 import { SECRET_CLIENT_ID, SECRET_CLIENT_SECRET, REDIRECT_URI } from '$env/static/private';
+import { serializeSession } from '$lib/server/session';
 import { users } from '../../../db/users';
 import type { TokenResponse } from '$lib/types';
+
+const getUserData = async (access_token: string) => {
+	const response = await fetch(
+		`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`
+	);
+	const data = await response.json();
+	if (data.name === undefined) {
+		return { error: 'Failed to get user data' };
+	}
+	// convert to titlecase
+	data.name = data.name
+		.split(' ')
+		.map((w: string) => w[0].toUpperCase() + w.substring(1).toLowerCase())
+		.join(' ');
+	return data;
+};
 
 export const GET = async ({ url }) => {
 	const redirectURL = REDIRECT_URI + '/api/oauth';
@@ -30,24 +46,14 @@ export const GET = async ({ url }) => {
 		const user = oAuth2Client.credentials;
 		console.log('credentials', user);
 
-		let userData = JSON.stringify(user);
-
-		// Serialize your user data or a session token into a cookie
-		const serializedCookie = cookie.serialize('user', userData, {
-			httpOnly: false,
-			maxAge: 60 * 60 * 24 * 7, // 1 week
-			path: '/',
-			sameSite: 'strict',
-			secure: true
-		});
+		// let data = await getUserData(user.access_token);
+		const headers = new Headers({ Location: '/talk' });
+		for (const c of serializeSession(user)) headers.append('Set-Cookie', c);
 
 		// Create a Response object to redirect the user and set the cookie
 		return new Response(null, {
 			status: 303,
-			headers: {
-				'Set-Cookie': serializedCookie,
-				Location: '/talk'
-			}
+			headers
 		});
 	} catch (err) {
 		console.error('Error during the OAuth flow', err);

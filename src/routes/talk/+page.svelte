@@ -72,7 +72,6 @@
 
 					const data = await res.json();
 					user.set(data.data);
-					if (data.cookie) document.cookie = data.cookie;
 				})
 				.catch((err) => {
 					console.error(err);
