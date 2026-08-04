@@ -70,10 +70,14 @@ export default function signaling(io: Server) {
 		socket.on('disconnect', () => {
 			state.userCount -= 1;
 
-			// A disconnecting offerer or answerer can never receive a relayed
-			// candidate for its calls again, so stop retrying them.
+			// A disconnecting offerer, answerer, or pending (not-yet-accepted)
+			// answerer can never receive a relayed candidate for its calls
+			// again, so stop retrying them.
 			state.calls
-				.filter((c: Call) => c.offerMaker === socket || c.answerMaker === socket)
+				.filter(
+					(c: Call) =>
+						c.offerMaker === socket || c.answerMaker === socket || c.pendingAnswerMaker === socket
+				)
 				.forEach((c: Call) => clearPendingIceRelays(c.callId));
 
 			// remove stale unpaired calls
