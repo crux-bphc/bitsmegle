@@ -6,7 +6,7 @@
 	import logo from '$lib/assets/logo.png';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { PUBLIC_BACKEND_URI, PUBLIC_BACKEND_WS_URI } from '$env/static/public';
+	import { PUBLIC_BACKEND_WS_URI } from '$env/static/public';
 
 	$: currentOnlineCount = 1;
 	const parseCookie = (cookieString: string): Record<string, string> => {
@@ -46,25 +46,18 @@
 	};
 
 	const checkExpiration = async () => {
+		// Re-read every tick: /api/refresh rewrites the cookie behind our back
 		const userData = parseCookie(document.cookie).user;
 		if (userData && JSON.parse(userData).expiry_date < Date.now()) {
-			let res = await fetch(`${PUBLIC_BACKEND_URI}/api/users`, {
-				method: 'POST',
-				body: userData,
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			let data = await res.json();
-			let cookie = data.cookie;
-			if (cookie) {
-				document.cookie = cookie;
-				// Re-handshake so the socket is authenticated with the fresh token.
-				if ($socket) {
-					$socket.auth = { token: accessTokenFromCookie() };
-					$socket.disconnect().connect();
-				}
+			const res = await fetch('/api/refresh', { method: 'POST' });
+			if (!res.ok) {
+				console.error('Could not refresh session');
+				return;
+			}
+			// Re-handshake so the socket is authenticated with the fresh token.
+			if ($socket) {
+				$socket.auth = { token: accessTokenFromCookie() };
+				$socket.disconnect().connect();
 			}
 		}
 	};

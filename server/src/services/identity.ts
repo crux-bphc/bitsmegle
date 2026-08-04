@@ -51,6 +51,7 @@ export async function getUserData(accessToken: string): Promise<User> {
 	// Title-case name
 	data.name = data.name
 		.split(' ')
+		.filter((w: string) => w.length > 0)
 		.map((w: string) => w[0].toUpperCase() + w.slice(1).toLowerCase())
 		.join(' ');
 
