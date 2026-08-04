@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 
 import { users } from '../config/mongo';
-import { state } from '../services/realtime';
+import { hasActiveInteractionLock, recordInteraction } from '../services/realtime';
 import type { User } from '../models/User';
 const router = Router();
 
@@ -77,12 +77,11 @@ router.post('/rep', async (req: Request, res: Response) => {
 
 		const user = await getUserData(data.access_token);
 		const userId = getIdFromEmail(user.email);
-		state.interactions[userId] = state.interactions[userId] || [];
 
-		if (state.interactions[userId].includes(targetId))
+		if (hasActiveInteractionLock(userId, targetId))
 			return res.status(409).send('Already rated today');
 
-		state.interactions[userId].push(targetId);
+		recordInteraction(userId, targetId);
 		const delta = action === 'like' ? 3 : -1;
 		await users.updateOne({ id: targetId }, { $inc: { reputation: delta } });
 
