@@ -25,9 +25,6 @@ export const GET = async ({ url }) => {
 
 	const code = url.searchParams.get('code');
 
-	//console.log('returned state',state)
-	console.log('returned code', code);
-
 	if (!code) {
 		return new Response(null, {
 			status: 400,
@@ -44,7 +41,6 @@ export const GET = async ({ url }) => {
 		oAuth2Client.setCredentials(r.tokens);
 		console.info('Tokens acquired.');
 		const user = oAuth2Client.credentials;
-		console.log('credentials', user);
 
 		// let data = await getUserData(user.access_token);
 		const headers = new Headers({ Location: '/talk' });
@@ -56,7 +52,10 @@ export const GET = async ({ url }) => {
 			headers
 		});
 	} catch (err) {
-		console.error('Error during the OAuth flow', err);
+		// err (a GaxiosError) can carry the request config/response, which may include the
+		// client secret, auth code, or tokens - log only the message, never the raw object.
+		const message = err instanceof Error ? err.message : 'Unknown error';
+		console.error('Error during the OAuth flow:', message);
 		// Handle errors, possibly redirect to an error page
 		return new Response(null, {
 			status: 303,
