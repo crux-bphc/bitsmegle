@@ -56,3 +56,17 @@ export function claimRating(rater: string, target: string, now = Date.now()): Ra
 	pairing.ratedBy.push(rater);
 	return 'ok';
 }
+
+/**
+ * Undoes a `claimRating` when the write it was gating didn't actually succeed
+ * (the target no longer exists, or the update itself failed), so the rating
+ * isn't permanently lost. No-op if no matching pairing is found.
+ */
+export function releaseRatingClaim(rater: string, target: string, now = Date.now()): void {
+	prune(now);
+	const pairing = state.pairings.find(
+		(p) => p.participants.includes(rater) && p.participants.includes(target)
+	);
+	if (!pairing) return;
+	pairing.ratedBy = pairing.ratedBy.filter((id) => id !== rater);
+}

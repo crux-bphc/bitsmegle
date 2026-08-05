@@ -3,7 +3,7 @@ import { Router, Request, Response } from 'express';
 import { users } from '../config/mongo';
 import { hasActiveInteractionLock, recordInteraction } from '../services/realtime';
 import { getUserData, identify } from '../services/identity';
-import { claimRating } from '../services/pairings';
+import { claimRating, releaseRatingClaim } from '../services/pairings';
 const router = Router();
 
 // POST /users
@@ -55,6 +55,7 @@ router.post('/rep', async (req: Request, res: Response) => {
 
 	if (userId === targetId) return res.status(403).send('Cannot rate yourself');
 
+	let claimed = false;
 	try {
 		if (hasActiveInteractionLock(userId, targetId))
 			return res.status(409).send('Already rated today');
@@ -64,15 +65,22 @@ router.post('/rep', async (req: Request, res: Response) => {
 		if (claim === 'not-paired')
 			return res.status(403).send('You have not been in a call with this user');
 		if (claim === 'already-rated') return res.status(409).send('Already rated this call');
+		claimed = true;
 
 		const delta = action === 'like' ? 3 : -1;
 		const result = await users.updateOne({ id: targetId }, { $inc: { reputation: delta } });
-		if (result.matchedCount === 0) return res.status(404).send('No such user');
+		if (result.matchedCount === 0) {
+			// The write never applied, so give the rating back instead of consuming it.
+			releaseRatingClaim(userId, targetId);
+			return res.status(404).send('No such user');
+		}
 
 		recordInteraction(userId, targetId);
 		return res.status(200).send('Success');
 	} catch (err) {
 		console.error(err);
+		// If the claim was already taken but the write failed, don't let it stay consumed.
+		if (claimed) releaseRatingClaim(userId, targetId);
 		return res.status(500).send('Server error');
 	}
 });
