@@ -62,7 +62,7 @@ router.get('/interactions', (_req: Request, res: Response) => {
 	const { interactions } = state;
 	let totalInteractions = 0;
 	for (const userId in interactions) {
-		totalInteractions += interactions[userId].length;
+		totalInteractions += Object.keys(interactions[userId]).length;
 	}
 	res.json({ totalInteractions, interactions });
 });

@@ -112,6 +112,7 @@ export default function signaling(io: Server) {
 	const releaseCall = (socket: Socket) => {
 		const callId = socket.data.currentCallId as string | undefined;
 		if (callId) {
+			clearPendingIceRelays(callId);
 			state.calls.delete(callId);
 			socket.data.currentCallId = undefined;
 		}
@@ -137,10 +138,6 @@ export default function signaling(io: Server) {
 		socket.on('disconnect', () => {
 			state.userCount -= 1;
 
-			// This socket's own call slot (if any) can never receive a relayed
-			// candidate again, so stop retrying it before releasing the slot.
-			const callId = socket.data.currentCallId as string | undefined;
-			if (callId) clearPendingIceRelays(callId);
 			releaseCall(socket);
 
 			io.sockets.emit('userCountChange', state.userCount);
