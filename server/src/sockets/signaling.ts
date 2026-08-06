@@ -118,6 +118,29 @@ export default function signaling(io: Server) {
 		}
 	};
 
+	const getCallPeer = (call: Call, socket: Socket): Socket | null => {
+		if (call.offerMaker === socket) return call.answerMaker ?? call.pendingAnswerMaker;
+		if (call.answerMaker === socket || call.pendingAnswerMaker === socket) return call.offerMaker;
+		return null;
+	};
+
+	// Tells the other participant in `socket`'s current call that it just ended, so
+	// they can tear down immediately instead of waiting for their ICE connection to
+	// notice (which can take tens of seconds).
+	const notifyPeerCallEnded = (socket: Socket) => {
+		const callId = socket.data.currentCallId as string | undefined;
+		if (!callId) return;
+
+		const call = state.calls.get(callId);
+		if (!call) return;
+
+		const peer = getCallPeer(call, socket);
+		if (peer) {
+			peer.data.currentCallId = undefined;
+			peer.emit('call-ended');
+		}
+	};
+
 	io.on('connection', (socket: Socket) => {
 		state.userCount += 1;
 		state.stats.totalUsersConnected += 1;
@@ -138,9 +161,32 @@ export default function signaling(io: Server) {
 		socket.on('disconnect', () => {
 			state.userCount -= 1;
 
+			notifyPeerCallEnded(socket);
 			releaseCall(socket);
 
 			io.sockets.emit('userCountChange', state.userCount);
+		});
+
+		socket.on('end-call', (data: any) => {
+			if (!isValidCallIdPayload(data)) {
+				console.warn('Dropping end-call: invalid payload from socket', socket.id);
+				return;
+			}
+
+			const call = state.calls.get(data.callId);
+			if (!call) return;
+
+			const isParticipant =
+				call.offerMaker === socket ||
+				call.answerMaker === socket ||
+				call.pendingAnswerMaker === socket;
+			if (!isParticipant) {
+				console.warn(`Dropping end-call from non-participant socket ${socket.id}`);
+				return;
+			}
+
+			notifyPeerCallEnded(socket);
+			releaseCall(socket);
 		});
 
 		socket.on('looking-for-somebody', () => {
