@@ -135,12 +135,15 @@
 		});
 
 		// The peer skipped/ended the call; tear down immediately instead of waiting
-		// for our own ICE connection to notice they're gone.
+		// for our own ICE connection to notice they're gone, and requeue just like
+		// clicking Skip does for the person who initiated it.
 		$socket?.on('call-ended', async () => {
 			if ($currentStatus[0] === 'C' || $currentStatus[0] === 'F') {
-				$currentStatus = 'Idle, peer disconnected';
+				$currentStatus = 'Idle';
 				await endWebRTC();
 				await initiateWebRTC();
+				$currentStatus = 'Finding somebody...';
+				$socket?.emit('looking-for-somebody');
 			}
 		});
 	});
