@@ -188,7 +188,9 @@
 		$socket?.off('remote-user', handleRemoteUser);
 		$socket?.off('call-ended', handleCallEnded);
 
-		window.removeEventListener('pagehide', handlePageHide);
+		if (typeof window !== 'undefined') {
+			window.removeEventListener('pagehide', handlePageHide);
+		}
 	});
 
 	const handleModalClose = async () => {
