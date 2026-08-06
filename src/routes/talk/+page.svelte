@@ -133,6 +133,16 @@
 			console.log('Remote user:', data);
 			remoteUser.set(data);
 		});
+
+		// The peer skipped/ended the call; tear down immediately instead of waiting
+		// for our own ICE connection to notice they're gone.
+		$socket?.on('call-ended', async () => {
+			if ($currentStatus[0] === 'C' || $currentStatus[0] === 'F') {
+				$currentStatus = 'Idle, peer disconnected';
+				await endWebRTC();
+				await initiateWebRTC();
+			}
+		});
 	});
 
 	const handleModalClose = async () => {
@@ -272,7 +282,10 @@
 	};
 
 	const endWebRTC = async (rate: boolean = true) => {
-		// TODO: add a call-ended event on the socket server
+		if (currentCallId) {
+			$socket?.emit('end-call', { callId: currentCallId });
+		}
+
 		await peerConnection.close();
 
 		if (rate && $remoteUser) {
