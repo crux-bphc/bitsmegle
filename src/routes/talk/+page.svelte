@@ -40,20 +40,24 @@
 	let rating = writable(false);
 
 	const start = async () => {
-		// Start button wont work
-
 		running = true;
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 			localStream.set(stream);
-			// console.log(stream);
 			await initiateWebRTC();
+			$currentStatus = 'Idle';
 		} catch (e: any) {
 			running = false;
 			if (e.name === 'NotAllowedError') {
-				$currentStatus = 'Permission Denied';
+				$currentStatus = 'Permission denied, allow camera/mic access and retry';
+			} else if (e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError') {
+				$currentStatus = 'No camera/mic found';
+			} else if (e.name === 'NotReadableError' || e.name === 'TrackStartError') {
+				$currentStatus = 'Camera/mic already in use by another app';
+			} else {
+				$currentStatus = 'Could not access camera/mic';
 			}
-			throw e;
+			console.error('getUserMedia failed:', e);
 		}
 	};
 
@@ -379,15 +383,17 @@
 		</div>
 
 		<!-- BUTTONS ROW -->
-		{#if running && !$rating}
+		{#if !$rating}
 			<div class="flex flex-wrap justify-center md:justify-start items-center gap-2 mt-2 md:mt-0">
-				<button
-					class="bg-indigo-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-					on:click={handleConnect}
-					disabled={$currentStatus[0] == 'F' && running}
-				>
-					{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}
-				</button>
+				{#if running}
+					<button
+						class="bg-indigo-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+						on:click={handleConnect}
+						disabled={$currentStatus[0] == 'F' && running}
+					>
+						{$currentStatus[0] == 'I' ? 'Connect' : 'Skip'}
+					</button>
+				{/if}
 
 				<button
 					class="bg-rose-600 text-white px-4 py-2 rounded-lg"
@@ -395,19 +401,22 @@
 				>
 					{running ? 'End' : 'Start'}
 				</button>
-				<button
-					class="relative bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center justify-center h-full"
-					on:click={() => ($drawer = !$drawer)}
-				>
-					<i class="fas fa-comment text-base"></i>
-					{#if hasPing}
-						<!-- little red dot, absolutely positioned inside its parent button -->
-						<span
-							class="absolute top-1 right-1 h-6 w-6 bg-red-500 rounded-full
+
+				{#if running}
+					<button
+						class="relative bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center justify-center h-full"
+						on:click={() => ($drawer = !$drawer)}
+					>
+						<i class="fas fa-comment text-base"></i>
+						{#if hasPing}
+							<!-- little red dot, absolutely positioned inside its parent button -->
+							<span
+								class="absolute top-1 right-1 h-6 w-6 bg-red-500 rounded-full
              translate-x-1/2 -translate-y-1/2">{pingCount}</span
-						>
-					{/if}
-				</button>
+							>
+						{/if}
+					</button>
+				{/if}
 			</div>
 		{/if}
 	</section>
