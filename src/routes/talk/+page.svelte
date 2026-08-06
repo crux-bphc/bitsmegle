@@ -37,6 +37,7 @@
 	import { writable } from 'svelte/store';
 
 	let running = true;
+	let mediaError = false;
 	let rating = writable(false);
 
 	const start = async () => {
@@ -46,8 +47,10 @@
 			localStream.set(stream);
 			await initiateWebRTC();
 			$currentStatus = 'Idle';
+			mediaError = false;
 		} catch (e: any) {
 			running = false;
+			mediaError = true;
 			if (e.name === 'NotAllowedError') {
 				$currentStatus = 'Permission denied, allow camera/mic access and retry';
 			} else if (e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError') {
@@ -399,7 +402,7 @@
 					class="bg-rose-600 text-white px-4 py-2 rounded-lg"
 					on:click={running ? closeEverything : start}
 				>
-					{running ? 'End' : 'Start'}
+					{running ? 'End' : mediaError ? 'Try Again' : 'Start'}
 				</button>
 
 				{#if running}
