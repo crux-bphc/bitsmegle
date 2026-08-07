@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "ts-node-dev --respawn --transpile-only ./src/index.ts",
 		"build": "tsc",
-		"test": "npm run build && node ./test/rep.test.cjs",
+		"test": "npm run build && node ./test/rep.test.cjs && node ./test/signaling.test.cjs",
 		"start": "node ./dist/index.js"
 	},
 	"keywords": [],
@@ -25,6 +25,7 @@
 		"@types/cookie": "^0.6.0",
 		"@types/express": "^5.0.3",
 		"@types/node": "^24.1.0",
+		"socket.io-client": "^4.8.3",
 		"ts-node-dev": "^2.0.0",
 		"typescript": "^5.8.3"
 	}
