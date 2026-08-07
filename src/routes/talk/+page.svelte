@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { PUBLIC_BACKEND_URI } from '$env/static/public';
 
 	import { user, remoteUser } from '$lib/stores/userStore';
@@ -15,6 +15,10 @@
 	import { currentStatus } from '$lib/stores/statusStore';
 
 	let currentCallId: string = '';
+	// Guards leaveCall() so every exit path (End/Skip, in-app navigation, tab
+	// close, component teardown) can call it without racing or double-firing
+	// end-call/close(). Reset whenever a fresh peer connection is set up.
+	let hasLeftCall = false;
 	let drawer = writable(false);
 	let hasPing = false;
 	let pingCount = 0;
@@ -33,7 +37,7 @@
 	}
 
 	let peerConnection: RTCPeerConnection;
-	import { goto } from '$app/navigation';
+	import { goto, beforeNavigate } from '$app/navigation';
 	import { writable } from 'svelte/store';
 
 	let running = true;
@@ -64,6 +68,84 @@
 		}
 	};
 
+	// Listen for remote answer
+	const handleAnswerMade = async (data) => {
+		if (data.answer) {
+			await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+			$currentStatus = 'Found someone';
+		}
+	};
+
+	// When answered, add candidate to peer connection
+	const handleAddIceCandidate = (data) => {
+		if (data.candidate) {
+			peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+		}
+	};
+
+	const handleCallData = async (data) => {
+		data = JSON.parse(data);
+		if (typeof data == 'undefined') {
+			// Person didn't give permissions for camera but somehow connected?
+		}
+		const offerDescription = new RTCSessionDescription(data.offer); // ignore this
+		await peerConnection.setRemoteDescription(offerDescription);
+		const answerDescription = await peerConnection.createAnswer();
+		await peerConnection.setLocalDescription(answerDescription);
+
+		const answer = {
+			type: answerDescription.type,
+			sdp: answerDescription.sdp
+		};
+
+		$socket?.emit('make-answer', { callId: data.callId, answer });
+	};
+
+	const handleCallFound = async (data) => {
+		currentCallId = data;
+		console.log('Handling answer...');
+		await handleAnswer();
+	};
+
+	const handleCallNotFound = async () => {
+		console.log('Creating call...');
+		await handleCall();
+		$currentStatus = 'Finding someone...';
+	};
+
+	const handleRemoteUser = (data) => {
+		console.log('Remote user:', data);
+		remoteUser.set(data);
+	};
+
+	// The peer skipped/ended the call; tear down immediately instead of waiting
+	// for our own ICE connection to notice they're gone, and requeue just like
+	// clicking Skip does for the person who initiated it.
+	const handleCallEnded = async () => {
+		if ($currentStatus[0] === 'C' || $currentStatus[0] === 'F') {
+			$currentStatus = 'Idle';
+			await leaveCall(true);
+			await initiateWebRTC();
+			$currentStatus = 'Finding somebody...';
+			$socket?.emit('looking-for-somebody');
+		}
+	};
+
+	// The tab is closing, being refreshed, or navigating to a page outside the
+	// SPA (so beforeNavigate/onDestroy won't fire in time). Fire-and-forget the
+	// same notification the other exit paths send; the server's socket
+	// `disconnect` handler is the fallback if this doesn't make it out in time.
+	const handlePageHide = () => {
+		leaveCall(false);
+	};
+
+	// Any in-app navigation away from /talk (the logo, leaderboard/profile
+	// links, browser back/forward). Runs before the component is torn down, so
+	// there's no page left to show a rating prompt on.
+	beforeNavigate(() => {
+		leaveCall(false);
+	});
+
 	onMount(async () => {
 		const userData = parseCookie(document.cookie).user;
 		if (userData) {
@@ -88,71 +170,34 @@
 			return goto('/signup');
 		}
 
-		// Listen for remote answer
-		$socket?.on('answer-made', async (data) => {
-			if (data.answer) {
-				await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-				$currentStatus = 'Found someone';
-			}
-		});
+		$socket?.on('answer-made', handleAnswerMade);
+		$socket?.on('add-ice-candidate', handleAddIceCandidate);
+		$socket?.on('call-data', handleCallData);
+		$socket?.on('call-found', handleCallFound);
+		$socket?.on('call-not-found', handleCallNotFound);
+		$socket?.on('remote-user', handleRemoteUser);
+		$socket?.on('call-ended', handleCallEnded);
 
-		// When answered, add candidate to peer connection
-		$socket?.on('add-ice-candidate', (data) => {
-			// console.log(data);
-			if (data.candidate) {
-				peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-				// console.log('Added ice candidate');
-			}
-		});
+		window.addEventListener('pagehide', handlePageHide);
+	});
 
-		$socket?.on('call-data', async (data) => {
-			data = JSON.parse(data);
-			if (typeof data == 'undefined') {
-				// Person didn't give permissions for camera but somehow connected?
-			}
-			// console.log(data);
-			const offerDescription = new RTCSessionDescription(data.offer); // ignore this
-			await peerConnection.setRemoteDescription(offerDescription);
-			const answerDescription = await peerConnection.createAnswer();
-			await peerConnection.setLocalDescription(answerDescription);
+	// Safety net for any teardown beforeNavigate doesn't cover (e.g. HMR,
+	// non-navigation unmounts). leaveCall() is idempotent, so this is a no-op
+	// if beforeNavigate already ran.
+	onDestroy(() => {
+		leaveCall(false);
 
-			const answer = {
-				type: answerDescription.type,
-				sdp: answerDescription.sdp
-			};
+		$socket?.off('answer-made', handleAnswerMade);
+		$socket?.off('add-ice-candidate', handleAddIceCandidate);
+		$socket?.off('call-data', handleCallData);
+		$socket?.off('call-found', handleCallFound);
+		$socket?.off('call-not-found', handleCallNotFound);
+		$socket?.off('remote-user', handleRemoteUser);
+		$socket?.off('call-ended', handleCallEnded);
 
-			$socket?.emit('make-answer', { callId: data.callId, answer });
-		});
-
-		$socket?.on('call-found', async (data) => {
-			currentCallId = data;
-			console.log('Handling answer...');
-			await handleAnswer();
-		});
-
-		$socket?.on('call-not-found', async () => {
-			console.log('Creating call...');
-			await handleCall();
-			$currentStatus = 'Finding someone...';
-		});
-
-		$socket?.on('remote-user', (data) => {
-			console.log('Remote user:', data);
-			remoteUser.set(data);
-		});
-
-		// The peer skipped/ended the call; tear down immediately instead of waiting
-		// for our own ICE connection to notice they're gone, and requeue just like
-		// clicking Skip does for the person who initiated it.
-		$socket?.on('call-ended', async () => {
-			if ($currentStatus[0] === 'C' || $currentStatus[0] === 'F') {
-				$currentStatus = 'Idle';
-				await endWebRTC();
-				await initiateWebRTC();
-				$currentStatus = 'Finding somebody...';
-				$socket?.emit('looking-for-somebody');
-			}
-		});
+		if (typeof window !== 'undefined') {
+			window.removeEventListener('pagehide', handlePageHide);
+		}
 	});
 
 	const handleModalClose = async () => {
@@ -171,6 +216,10 @@
 	};
 
 	const initiateWebRTC = async () => {
+		// A fresh connection is starting, so the next leaveCall() (whenever it
+		// happens) should actually run instead of being skipped as a duplicate.
+		hasLeftCall = false;
+
 		// Set up WebRTC peer connection
 		const servers = {
 			iceServers: [
@@ -225,11 +274,11 @@
 				console.log('Peer connection disconnected');
 				if ($currentStatus[0] === 'C') {
 					$currentStatus = 'Idle, disconnected';
-					await endWebRTC();
+					await leaveCall(true);
 					await initiateWebRTC();
 				} else if ($currentStatus[0] === 'F') {
 					$currentStatus = "Idle, couldn't connect";
-					await endWebRTC();
+					await leaveCall(true);
 					await initiateWebRTC();
 				}
 				// remoteStream.getTracks().forEach((track) => track.stop());
@@ -240,7 +289,7 @@
 	const handleConnect = async () => {
 		if ($currentStatus[0] === 'C') {
 			$currentStatus = 'Idle';
-			await endWebRTC();
+			await leaveCall(true);
 			console.log('Ended WebRTC');
 			await initiateWebRTC();
 		}
@@ -291,15 +340,25 @@
 		$rating = false;
 	};
 
-	const endWebRTC = async (rate: boolean = true) => {
+	// The single teardown path for every way a call can end: the End/Skip
+	// buttons, the peer ending it, our own ICE connection dying, in-app
+	// navigation away from /talk, component destroy, or the tab closing. Guarded
+	// by hasLeftCall so it's safe to call from more than one of those triggers
+	// without double-emitting end-call or double-closing the peer connection.
+	const leaveCall = async (rate: boolean = false) => {
+		if (hasLeftCall) return;
+		hasLeftCall = true;
+
 		if (currentCallId) {
 			$socket?.emit('end-call', { callId: currentCallId });
+			currentCallId = '';
 		}
 
-		await peerConnection.close();
+		peerConnection?.close();
 
 		if (rate && $remoteUser) {
-			// ask for rating
+			// ask for rating — only reachable from paths where the page is still
+			// up to show it (End/Skip, peer-ended, ICE-disconnected)
 			$rating = true;
 			await new Promise<void>((resolve) => {
 				const unsubscribe = rating.subscribe((value) => {
@@ -313,23 +372,15 @@
 			console.log('rating done really');
 		}
 
-		// Close WebRTC connection and WebSocket connection
-
 		remoteStream.set(null);
-
 		remoteUser.set(null);
-
-		// RTCDataChannel.close()
-
-		// Stop local media stream
-		// localStream.getTracks().forEach((track) => track.stop());
 	};
 
 	const closeEverything = async () => {
 		$localStream?.getTracks().forEach((track) => track.stop());
 		$currentStatus = 'Stopped, please refresh to start again';
 		running = false;
-		await endWebRTC(false);
+		await leaveCall(false);
 	};
 </script>
 
