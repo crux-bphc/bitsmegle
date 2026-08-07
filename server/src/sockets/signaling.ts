@@ -106,38 +106,31 @@ export default function signaling(io: Server) {
 		next();
 	});
 
-	// A socket is only ever part of one call at a time; releasing the previous
-	// entry whenever a socket commits to a new call keeps `state.calls` bounded
-	// by concurrently active calls instead of every call ever made.
-	const releaseCall = (socket: Socket) => {
-		const callId = socket.data.currentCallId as string | undefined;
-		if (callId) {
-			clearPendingIceRelays(callId);
-			state.calls.delete(callId);
-			socket.data.currentCallId = undefined;
-		}
-	};
-
 	const getCallPeer = (call: Call, socket: Socket): Socket | null => {
 		if (call.offerMaker === socket) return call.answerMaker ?? call.pendingAnswerMaker;
 		if (call.answerMaker === socket || call.pendingAnswerMaker === socket) return call.offerMaker;
 		return null;
 	};
 
-	// Tells the other participant in `socket`'s current call that it just ended, so
-	// they can tear down immediately instead of waiting for their ICE connection to
-	// notice (which can take tens of seconds).
-	const notifyPeerCallEnded = (socket: Socket) => {
+	// The single teardown path for a socket's current call. Every way of leaving a
+	// call — ending it, disconnecting, or starting a new search/offer while still
+	// paired — must go through here, so the other participant is always told (with
+	// the callId and why) instead of being left streaming into a dead call, and so
+	// `state.calls` stays bounded by concurrently active calls.
+	const leaveCall = (socket: Socket, reason: 'ended' | 'peer-disconnected' | 'replaced') => {
 		const callId = socket.data.currentCallId as string | undefined;
 		if (!callId) return;
 
 		const call = state.calls.get(callId);
-		if (!call) return;
+		const peer = call ? getCallPeer(call, socket) : null;
 
-		const peer = getCallPeer(call, socket);
+		clearPendingIceRelays(callId);
+		state.calls.delete(callId);
+		socket.data.currentCallId = undefined;
+
 		if (peer) {
-			peer.data.currentCallId = undefined;
-			peer.emit('call-ended');
+			if (peer.data.currentCallId === callId) peer.data.currentCallId = undefined;
+			peer.emit('call-ended', { callId, reason });
 		}
 	};
 
@@ -161,8 +154,7 @@ export default function signaling(io: Server) {
 		socket.on('disconnect', () => {
 			state.userCount -= 1;
 
-			notifyPeerCallEnded(socket);
-			releaseCall(socket);
+			leaveCall(socket, 'peer-disconnected');
 
 			io.sockets.emit('userCountChange', state.userCount);
 		});
@@ -185,8 +177,7 @@ export default function signaling(io: Server) {
 				return;
 			}
 
-			notifyPeerCallEnded(socket);
-			releaseCall(socket);
+			leaveCall(socket, 'ended');
 		});
 
 		socket.on('looking-for-somebody', () => {
@@ -214,7 +205,7 @@ export default function signaling(io: Server) {
 				call.paired = true;
 				call.pendingAnswerMaker = socket;
 				call.answerMakerUser = me;
-				releaseCall(socket);
+				leaveCall(socket, 'replaced');
 				socket.data.currentCallId = call.callId;
 				socket.emit('call-found', call.callId);
 			} else {
@@ -233,7 +224,7 @@ export default function signaling(io: Server) {
 				return;
 			}
 
-			releaseCall(socket);
+			leaveCall(socket, 'replaced');
 			socket.data.currentCallId = data.callId;
 			state.calls.set(data.callId, {
 				callId: data.callId,
@@ -258,6 +249,10 @@ export default function signaling(io: Server) {
 
 			const call = state.calls.get(candidate.callId);
 			if (call) {
+				if (call.offerMaker !== socket) {
+					console.warn(`Dropping offerCandidate from non-offerer socket ${socket.id}`);
+					return;
+				}
 				call.offerCandidates.push(candidate);
 				const interval = setInterval(() => {
 					if (call.answerMaker) {
@@ -278,6 +273,10 @@ export default function signaling(io: Server) {
 
 			const call = state.calls.get(data.callId);
 			if (call) {
+				if (call.answerMaker !== socket && call.pendingAnswerMaker !== socket) {
+					console.warn(`Dropping make-answer from non-answerer socket ${socket.id}`);
+					return;
+				}
 				call.answer = data.answer;
 				call.offerMaker.emit('answer-made', data);
 			}
@@ -291,9 +290,12 @@ export default function signaling(io: Server) {
 
 			const call = state.calls.get(candidate.callId);
 			if (call) {
+				if (call.answerMaker !== socket && call.pendingAnswerMaker !== socket) {
+					console.warn(`Dropping answerCandidate from non-answerer socket ${socket.id}`);
+					return;
+				}
 				call.answerCandidates.push(candidate);
 				call.offerMaker.emit('add-ice-candidate', candidate);
-				// call.answerMaker?.emit('add-ice-candidate', data.offerCandidates);
 			}
 		});
 

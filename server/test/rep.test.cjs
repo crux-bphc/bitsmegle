@@ -6,6 +6,7 @@ process.env.DB_URI = 'mongodb://localhost:27017/bitsmegle';
 process.env.SECRET_CLIENT_ID = 'test-client-id';
 process.env.SECRET_CLIENT_SECRET = 'test-client-secret';
 process.env.PORT = '0';
+process.env.STATS_API_KEY = 'test-stats-key';
 
 const path = require('path');
 const DIST = path.join(__dirname, '..', 'dist');
