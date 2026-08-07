@@ -249,6 +249,10 @@ export default function signaling(io: Server) {
 
 			const call = state.calls.get(candidate.callId);
 			if (call) {
+				if (call.offerMaker !== socket) {
+					console.warn(`Dropping offerCandidate from non-offerer socket ${socket.id}`);
+					return;
+				}
 				call.offerCandidates.push(candidate);
 				const interval = setInterval(() => {
 					if (call.answerMaker) {
@@ -269,6 +273,10 @@ export default function signaling(io: Server) {
 
 			const call = state.calls.get(data.callId);
 			if (call) {
+				if (call.answerMaker !== socket && call.pendingAnswerMaker !== socket) {
+					console.warn(`Dropping make-answer from non-answerer socket ${socket.id}`);
+					return;
+				}
 				call.answer = data.answer;
 				call.offerMaker.emit('answer-made', data);
 			}
@@ -282,6 +290,10 @@ export default function signaling(io: Server) {
 
 			const call = state.calls.get(candidate.callId);
 			if (call) {
+				if (call.answerMaker !== socket && call.pendingAnswerMaker !== socket) {
+					console.warn(`Dropping answerCandidate from non-answerer socket ${socket.id}`);
+					return;
+				}
 				call.answerCandidates.push(candidate);
 				call.offerMaker.emit('add-ice-candidate', candidate);
 			}
